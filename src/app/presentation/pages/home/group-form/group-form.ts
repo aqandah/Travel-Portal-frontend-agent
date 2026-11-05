@@ -31,6 +31,7 @@ type GroupDiscountMode = 'automatic' | 'manual';
     HasRoleDirective,
   ],
   templateUrl: './group-form.html',
+  styleUrl: './group-form.css',
 })
 export class GroupForm implements OnInit {
   generalRepository = inject(GeneralDataRepository);
@@ -347,8 +348,13 @@ export class GroupForm implements OnInit {
     var duration = companyValues.period ? Number(companyValues.period) : NaN;
     var destination = companyValues.destination;
     const calculationId = ++this.premiumCalculationId;
-    this.discountMode.set(mode);
+    const effectiveMode = this.isDiscountEligible ? mode : 'automatic';
+    this.discountMode.set(effectiveMode);
     this.premiumQuoteReady.set(false);
+
+    if (!this.isDiscountEligible) {
+      this.policyInfoForm.patchValue({ manualDiscountPercent: null }, { emitEvent: false });
+    }
 
     if (!duration || !destination || this.members.length === 0) {
       this.premiumAmount.set(0);
@@ -361,7 +367,7 @@ export class GroupForm implements OnInit {
     this.loadingPremium.set(true);
 
     try {
-      const manualDiscountPercent = this.isRole2 && mode === 'manual'
+      const manualDiscountPercent = this.isRole2 && effectiveMode === 'manual'
         ? this.policyInfoForm.get('manualDiscountPercent')?.value
         : undefined;
       const response = await this.policyRepository.calculatePremiumQuote(
@@ -377,7 +383,7 @@ export class GroupForm implements OnInit {
         response.automaticDiscountPercent ?? this.getAutomaticGroupDiscountPercent(this.members.length);
       const responseDiscount =
         response.appliedDiscountPercent ??
-        (mode === 'manual' ? Number(manualDiscountPercent) : automaticDiscount);
+        (effectiveMode === 'manual' ? Number(manualDiscountPercent) : automaticDiscount);
       const totalPremium =
         response.totalPremium ??
         (response.basePremium != null
@@ -444,6 +450,10 @@ calculateAge(birthDate: string): number | string {
       control?.valid === true &&
       !this.loadingPremium()
     );
+  }
+
+  get isDiscountEligible(): boolean {
+    return this.members.length >= 10;
   }
 
   private getAutomaticGroupDiscountPercent(memberCount: number): number {
@@ -634,7 +644,7 @@ calculateAge(birthDate: string): number | string {
       companyNameNative: companyValues.companyNameEnglish,
       companyNameForeign: companyValues.companyNameArabic || null,
       policies: this.members,
-      manualDiscountPercent: this.isRole2 && this.discountMode() === 'manual'
+      manualDiscountPercent: this.isDiscountEligible && this.isRole2 && this.discountMode() === 'manual'
         ? this.policyInfoForm.get('manualDiscountPercent')?.value ?? null
         : null,
     };
