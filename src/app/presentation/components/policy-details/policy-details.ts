@@ -10,6 +10,10 @@ import { FilesDownload } from '../files-download/files-download';
 import { AuthorizationRepository } from '../../../domain/authorization';
 import { Price } from '../price';
 
+type IndividualPolicyDetails = CustomerViewSinglePolicy & {
+  hasEndorsedVersion?: boolean;
+};
+
 @Component({
   selector: 'app-policy-details',
   imports: [FormsModule, CommonModule, FilesDownload, Price],
@@ -27,10 +31,16 @@ export class PolicyDetails {
     return p != null && Array.isArray((p as CustomerViewGroupPolicy).policies);
   });
 
-  singlePolicy = computed(() => this.appService.currentPolicyToShow() as CustomerViewSinglePolicy);
+  singlePolicy = computed(() => this.appService.currentPolicyToShow() as IndividualPolicyDetails);
   groupPolicy = computed(() => this.appService.currentPolicyToShow() as CustomerViewGroupPolicy);
 
   policy = computed(() => this.appService.currentPolicyToShow());
+  hasEndorsedVersion = computed(
+    () => !this.isGroupPolicy() && this.singlePolicy().hasEndorsedVersion === true,
+  );
+  printingBlocked = computed(() => this.hasEndorsedVersion());
+  printRestrictionMessage =
+    'This policy has an endorsed version. Print the endorsed policy instead.';
   sortedPolicies = computed(() =>
     [...(this.groupPolicy().policies ?? [])].sort((a, b) => (a.serial ?? 0) - (b.serial ?? 0)),
   );
@@ -254,6 +264,11 @@ export class PolicyDetails {
   }
 
   async requestPrintPolicy(): Promise<void> {
+    if (this.printingBlocked()) {
+      this.dialogService.openDialog(this.printRestrictionMessage, 'error');
+      return;
+    }
+
   this.appService.isLoading.set('Preparing Policy Document');
 
   const key = this.isGroupPolicy()

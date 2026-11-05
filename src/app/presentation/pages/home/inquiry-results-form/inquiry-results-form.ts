@@ -17,6 +17,10 @@ export interface PolicyResult {
   createdBy: string;
 }
 
+type IndividualPolicyDetails = CustomerViewSinglePolicy & {
+  hasEndorsedVersion: boolean;
+};
+
 @Component({
   selector: 'app-inquiry-results-form',
   imports: [CommonModule],
@@ -211,11 +215,34 @@ export class InquiryResultsForm {
     return planType == null ? '-' : policyTypeLabels[planType] ?? 'Unknown policy type';
   }
 
+  private getBasePolicyReference(referenceKey: string | null | undefined): string {
+    return (referenceKey ?? '')
+      .trim()
+      .replace(/\s+C$/i, '')
+      .replace(/\s+/g, ' ')
+      .toUpperCase();
+  }
+
+  private hasEndorsedVersion(policy: AgentViewSinglePolicy): boolean {
+    const baseReference = this.getBasePolicyReference(policy.referenceKey);
+    if (!baseReference) return false;
+
+    return (this.allPolicies as AgentViewSinglePolicy[]).some((candidate) => {
+      const candidateStatus = candidate.policyStatus ?? candidate.status;
+
+      return (
+        candidate.referenceKey !== policy.referenceKey &&
+        candidateStatus === 2 &&
+        this.getBasePolicyReference(candidate.referenceKey) === baseReference
+      );
+    });
+  }
+
   async onPolicyClick(policyNumber: string, policyType: "single" | "group"): Promise<void> {
     if (policyType === "single") {
       const policy = this.paginatedSinglePolicies.find(p => p.referenceKey === policyNumber)!;
 
-      const informativePolicy: CustomerViewSinglePolicy = {
+      const informativePolicy: IndividualPolicyDetails = {
         referenceKey: policy.referenceKey,
         fullNameNative: [policy.firstName, policy.lastName].filter(Boolean).join(' ') || null,
         fullNameForeign: [policy.firstNameForeign, policy.lastNameForeign].filter(Boolean).join(' ') || null,
@@ -239,7 +266,8 @@ export class InquiryResultsForm {
         winterSkiFlag: policy.winterSkiFlag,
         totalPremium: policy.totalPremium,
         covidFlag: policy.covidFlag,
-        policyStatus: policy.policyStatus
+        policyStatus: policy.policyStatus,
+        hasEndorsedVersion: this.hasEndorsedVersion(policy),
       };
 
       this.appService.currentPolicyToShow.set(informativePolicy);
