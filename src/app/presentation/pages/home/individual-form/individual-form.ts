@@ -17,7 +17,6 @@ import { arabicOnlyValidator, englishOnlyValidator } from '../../../../core/vali
 import { numbersOnlyValidator, phoneNumberValidator } from '../../../../core/validators/number';
 import { passportValidator } from '../../../../core/validators/passport';
 import { PhoneNumberInputField } from '../../../components/phone-number-input-field/phone-number-input-field';
-import { Price } from '../../../components/price';
 
 @Component({
   selector: 'app-individual-form',
@@ -30,9 +29,9 @@ import { Price } from '../../../components/price';
     FilesDownload,
     HasRoleDirective,
     PhoneNumberInputField,
-    Price,
   ],
   templateUrl: './individual-form.html',
+  styleUrl: './individual-form.css',
 })
 export class IndividualForm implements OnInit {
   policyRepository = inject(PolicyRepository);
@@ -69,6 +68,7 @@ export class IndividualForm implements OnInit {
   today = new Date().toISOString().split('T')[0];
   maxDateOfBirth = '';
   currentStep = signal<number>(0);
+  private savedProgressSnapshot = '';
   steps = [
     { index: 0, label: 'Personal' },
     { index: 1, label: 'Policy' },
@@ -386,12 +386,89 @@ export class IndividualForm implements OnInit {
           paymentAccountNumber: accountsReturnContext.selectedAccountCode,
         });
       }
+    } else if (!this.appService.updatePolicyContext()) {
+      const savedProgress = this.appService.individualFormProgress().get(this.planType());
+      if (savedProgress) {
+        this.personalDetailsForm.patchValue(savedProgress.personalDetails, { emitEvent: false });
+        this.policyInfoForm.patchValue(savedProgress.policyInfo, { emitEvent: false });
+        this.premiumAmount = savedProgress.premiumAmount;
+        this.currentStep.set(savedProgress.step);
+      }
     }
 
     const date = new Date();
     date.setDate(date.getDate() - 30);
 
     this.maxDateOfBirth = date.toISOString().split('T')[0];
+    this.savedProgressSnapshot = this.getProgressSnapshot();
+  }
+
+  private getProgressData() {
+    return {
+      personalDetails: this.personalDetailsForm.getRawValue(),
+      policyInfo: this.policyInfoForm.getRawValue(),
+      premiumAmount: this.premiumAmount,
+      step: this.currentStep(),
+    };
+  }
+
+  private getProgressSnapshot(): string {
+    return JSON.stringify(this.getProgressData());
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.getProgressSnapshot() !== this.savedProgressSnapshot;
+  }
+
+  saveProgress(): void {
+    const progress = this.getProgressData();
+    this.appService.saveIndividualFormProgress(this.planType(), progress);
+    this.savedProgressSnapshot = JSON.stringify(progress);
+    this.personalDetailsForm.markAsPristine();
+    this.policyInfoForm.markAsPristine();
+  }
+
+  discardUnsavedProgress(): void {
+    this.appService.clearIndividualFormProgress(this.planType());
+  }
+
+  async resetForm(): Promise<void> {
+    const confirmed = await this.dialogService.confirm({
+      title: 'Reset individual form?',
+      message: 'All entered traveller and policy information will be cleared.',
+      confirmText: 'Reset form',
+      cancelText: 'Keep editing',
+      tone: 'danger',
+    });
+
+    if (!confirmed) return;
+
+    this.personalDetailsForm.reset({ nationality: 'PAL' });
+    this.policyInfoForm.reset({
+      departureFrom: this.departureFromSelectedOption,
+      destination: this.destinationSelectedOption,
+      tripCancellation: false,
+      winterSports: false,
+      covid19: false,
+      paymentMethod: '1',
+      paymentAccountNumber: this.userCashAccount,
+    });
+
+    if (this.planType() !== 8) {
+      this.policyInfoForm.get('departureFrom')?.disable();
+    } else {
+      this.policyInfoForm.get('destination')?.disable();
+    }
+    this.policyInfoForm.get('expiryDate')?.disable();
+    this.policyInfoForm.get('paymentAccountNumber')?.disable();
+
+    this.currentStep.set(0);
+    this.premiumAmount = 0;
+    this.appService.clearIndividualFormProgress(this.planType());
+    this.personalDetailsForm.markAsPristine();
+    this.policyInfoForm.markAsPristine();
+    this.savedProgressSnapshot = this.getProgressSnapshot();
+    this.dialogService.openDialog('Individual form reset successfully', 'success');
   }
 
   calculateExpiryDate(): void {
@@ -559,6 +636,7 @@ export class IndividualForm implements OnInit {
             ?.policyStatus;
 
           this.appService.updatePolicyContext.set(null);
+          this.appService.clearIndividualFormProgress(this.planType());
           this.appService.currentPolicyToShow.set({
             ...result,
             accountCode: policyValues.paymentAccountNumber,
@@ -584,6 +662,7 @@ export class IndividualForm implements OnInit {
 
         if (result) {
           this.appService.setPolicyInBuffer(this.planType(), result);
+          this.appService.clearIndividualFormProgress(this.planType());
           this.appService.currentPolicyToShow.set({
             ...result,
             accountCode: policyValues.paymentAccountNumber,
@@ -630,8 +709,19 @@ export class IndividualForm implements OnInit {
    */
   clearProgress(): void {
     this.appService.clearDataForTab(this.tabIndex);
-    this.personalDetailsForm.reset();
-    this.policyInfoForm.reset();
+    this.appService.clearIndividualFormProgress(this.planType());
+    this.personalDetailsForm.reset({ nationality: 'PAL' });
+    this.policyInfoForm.reset({
+      departureFrom: this.departureFromSelectedOption,
+      destination: this.destinationSelectedOption,
+      tripCancellation: false,
+      winterSports: false,
+      covid19: false,
+      paymentMethod: '1',
+      paymentAccountNumber: this.userCashAccount,
+    });
     this.premiumAmount = 0.0;
+    this.currentStep.set(0);
+    this.savedProgressSnapshot = this.getProgressSnapshot();
   }
 }

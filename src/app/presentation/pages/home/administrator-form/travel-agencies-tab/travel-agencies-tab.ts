@@ -18,6 +18,10 @@ import { arabicOnlyValidator, englishOnlyValidator } from '../../../../../core/v
 export class TravelAgenciesTab {
   fb = inject(FormBuilder);
   appService = inject(AppService);
+
+  backToAdministrator(): void {
+    this.appService.selectedTabIndex.set(6);
+  }
   dialogService = inject(DialogService);
   agencyRepository = inject(AgencyRepository);
 

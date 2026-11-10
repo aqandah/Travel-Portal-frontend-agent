@@ -17,6 +17,7 @@ import { passportValidator } from '../../../../core/validators/passport';
     FormTextInput,
   ],
   templateUrl: './inquiry-form.html',
+  styleUrl: './inquiry-form.css',
 })
 export class InquiryForm implements OnInit {
   selectedTab: 'individual' | 'group' = 'individual';

@@ -16,7 +16,7 @@
 }
 
 .member-modal-content {
-  max-height: calc(100dvh - 2rem);
+  /* max-height: calc(100dvh - 2rem); */
   overflow: hidden;
   border: 0;
   border-radius: 1rem;

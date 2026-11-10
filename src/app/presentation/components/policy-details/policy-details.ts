@@ -89,6 +89,25 @@ export class PolicyDetails {
     return this.groupPolicy().policies?.length ?? 0;
   }
 
+  backToPreviousView(): void {
+    if ((this.appService.inquiryResults()?.length ?? 0) > 0) {
+      this.appService.selectedTabIndex.set(11);
+      return;
+    }
+
+    const planType = this.policy()?.planType;
+    const formTabByPlanType: Record<number, number> = {
+      1: 0,
+      3: 3,
+      8: 1,
+      11: 2,
+    };
+
+    this.appService.selectedTabIndex.set(
+      planType == null ? 4 : (formTabByPlanType[planType] ?? 4),
+    );
+  }
+
   async ngOnInit() {
     this.isDraft = this.policy()?.policyStatus === 0;
 

@@ -21,6 +21,10 @@ export class UsersTab {
   dialogService = inject(DialogService);
   officeRepo = inject(OfficeRepository)
   appService = inject(AppService);
+
+  backToAdministrator(): void {
+    this.appService.selectedTabIndex.set(6);
+  }
   fb = inject(FormBuilder);
 
   private destroyRef = inject(DestroyRef);

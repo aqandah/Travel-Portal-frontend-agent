@@ -15,6 +15,10 @@ import { FormTextInput } from '../../../../components/form-text-input';
 export class CurrencyRatesTab {
   currencyRateRepository = inject(CurrencyRatesRespository)
   appService = inject(AppService)
+
+  backToAdministrator(): void {
+    this.appService.selectedTabIndex.set(6);
+  }
   fb = inject(FormBuilder)
   dialogService = inject(DialogService)
 

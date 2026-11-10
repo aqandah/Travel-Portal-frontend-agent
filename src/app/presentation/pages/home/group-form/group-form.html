@@ -1,54 +1,51 @@
-<div class="responsive-page responsive-form-page container overflow-y-auto p-4" style="position: relative">
-  @if (windowWidth() > 1280) {
-    <img
-      [src]="currentStep() === 0 ? 'individual-step-one.svg' : 'individual-step-two.svg'"
-      style="
-        position: fixed;
-        bottom: -130px;
-        right: -120px;
-        width: 40%;
-        pointer-events: none;
-        z-index: 0;
-      "
-    />
-  }
+<div class="group-page responsive-page responsive-form-page">
+  <div class="group-shell">
+    <header class="group-header">
+      <div>
+        <span class="group-eyebrow">Group Travel</span>
+        <h1>Create Group Policy</h1>
+        <p>Enter the company details, add members, then review pricing and discounts.</p>
+      </div>
+      <button type="button" class="btn btn-outline-danger" (click)="resetForm()">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
+      </button>
+    </header>
 
-  <div class="row gy-3 mb-3" style="position: relative; z-index: 1">
-    <div class="col-lg-8 col-12">
-      <div class="container-fixed overflow-x-hidden">
-        <div class="form-stepper d-flex align-items-center gap-2 mb-4">
-          @for (step of steps; track step.index) {
-            <div class="d-flex align-items-center">
+    <div class="group-layout">
+      <div class="group-main">
+        <div class="group-form-card overflow-x-hidden">
+          <div class="group-stepper" aria-label="Group policy creation progress">
+            @for (step of steps; track step.index) {
               <div
-                class="rounded-circle d-flex align-items-center justify-content-center"
-                [class.bg-primary]="currentStep() >= step.index"
-                [class.bg-secondary]="currentStep() < step.index"
-                [class.text-white]="true"
-                style="width: 32px; height: 32px; font-weight: 600"
+                class="group-step"
+                [class.group-step--active]="currentStep() === step.index"
+                [class.group-step--complete]="currentStep() > step.index"
+                [attr.aria-current]="currentStep() === step.index ? 'step' : null"
               >
-                {{ step.index + 1 }}
+                <span class="group-step__marker">
+                  @if (currentStep() > step.index) {
+                    <i class="bi bi-check-lg" aria-hidden="true"></i>
+                  } @else {
+                    {{ step.index + 1 }}
+                  }
+                </span>
+                <span class="group-step__copy">
+                  <small>Step {{ step.index + 1 }}</small>
+                  <strong>{{ step.label }}</strong>
+                </span>
               </div>
-              <span
-                class="ms-2 fw-semibold"
-                [class.text-primary]="currentStep() >= step.index"
-                [class.text-muted]="currentStep() < step.index"
-              >
-                {{ step.label }}
-              </span>
-            </div>
-            @if (step.index < steps.length - 1) {
-              <div
-                class="flex-grow-1 mx-2"
-                style="height: 2px"
-                [class.bg-primary]="currentStep() > step.index"
-                [class.bg-secondary]="currentStep() <= step.index"
-              ></div>
+              @if (step.index < steps.length - 1) {
+                <span
+                  class="group-stepper__line"
+                  [class.group-stepper__line--complete]="currentStep() > step.index"
+                  aria-hidden="true"
+                ></span>
+              }
             }
-          }
-        </div>
+          </div>
 
         @if (currentStep() === 0) {
-          <div [formGroup]="companyInfoForm">
+          <div class="group-step-content" [formGroup]="companyInfoForm">
             <h2>Company & Travel Information</h2>
             <hr class="col-8 mt-1" />
 
@@ -191,7 +188,7 @@
             </div>
           </div>
         } @else if (currentStep() === 1) {
-          <form [formGroup]="policyInfoForm" (ngSubmit)="onSaveGroupPolicy()">
+          <form class="group-step-content" [formGroup]="policyInfoForm" (ngSubmit)="onSaveGroupPolicy()">
             <h2>Group Members</h2>
             <hr class="col-8 mt-1" />
 
@@ -404,23 +401,34 @@
       </div>
     </div>
 
-    <div class="col-lg-4 col-12">
-      <div class="alert alert-success" role="alert">
-        <strong>Calculate your premium in a single click..</strong><br />
-        Get instant results with our new calculator — no complicated forms or extra steps needed.<br /><br />
-        <a
-          (click)="this.appService.selectedTabIndex.set(7)"
-          class="btn btn-link m-0 p-0 text-primary fw-semibold"
-        >
-          Try it now →
-        </a>
-      </div>
+      <aside class="group-sidebar">
+        <section class="group-assist-card">
+          <span class="group-assist-icon" aria-hidden="true"><i class="bi bi-calculator"></i></span>
+          <div>
+            <span class="group-eyebrow">Premium calculator</span>
+            <h2>Need a quick estimate?</h2>
+            <p>Calculate the expected premium before completing the group policy.</p>
+            <button
+              type="button"
+              class="btn btn-outline-primary"
+              (click)="this.appService.selectedTabIndex.set(7)"
+            >
+              Open Calculator <i class="bi bi-arrow-up-right ms-2"></i>
+            </button>
+          </div>
+        </section>
 
-      <div class="card border-0">
-        <div class="card-body">
+        <section class="group-downloads-card">
+          <div class="group-sidebar-heading">
+            <span aria-hidden="true"><i class="bi bi-file-earmark-arrow-down"></i></span>
+            <div>
+              <h2>Policy documents</h2>
+              <p>Reference files available for download.</p>
+            </div>
+          </div>
           <app-files-download [data]="filesToDownload"></app-files-download>
-        </div>
-      </div>
+        </section>
+      </aside>
     </div>
   </div>
 </div>

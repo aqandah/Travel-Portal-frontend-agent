@@ -16,6 +16,10 @@ import { CustomerViewGroupPolicy, CustomerViewSinglePolicy } from '../../../../.
 export class CancelPolicyTab {
   fb = inject(FormBuilder);
   appService = inject(AppService);
+
+  backToAdministrator(): void {
+    this.appService.selectedTabIndex.set(6);
+  }
   dialogService = inject(DialogService);
   policyRepository = inject(PolicyRepository);
 

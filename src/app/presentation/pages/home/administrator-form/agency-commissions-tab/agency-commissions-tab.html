@@ -4,9 +4,14 @@
       <h2 class="mb-1">Agency Commissions Management</h2>
       <small class="text-muted">Manage agency commission rates and details</small>
     </div>
-    <button type="button" class="btn btn-success" (click)="openAddCommissionModal()">
-      <i class="bi bi-plus-lg me-2"></i>Add New Commission
-    </button>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-outline-secondary" (click)="backToAdministrator()">
+        <i class="bi bi-arrow-left me-2"></i>Back
+      </button>
+      <button type="button" class="btn btn-success" (click)="openAddCommissionModal()">
+        <i class="bi bi-plus-lg me-2"></i>Add New Commission
+      </button>
+    </div>
   </div>
 
   <div class="card d-flex flex-column flex-grow-1 overflow-hidden">

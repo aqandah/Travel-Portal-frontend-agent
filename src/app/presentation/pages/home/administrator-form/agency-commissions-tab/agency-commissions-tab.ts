@@ -17,6 +17,10 @@ import { CreateAgencyCommissionRequest, UpdateAgencyCommissionRequest, ViewAgenc
 export class AgencyCommissionsTab {
   fb = inject(FormBuilder);
   appService = inject(AppService);
+
+  backToAdministrator(): void {
+    this.appService.selectedTabIndex.set(6);
+  }
   dialogService = inject(DialogService);
   agencyCommissionRepository = inject(AgencyCommissionRepository);
 

@@ -14,6 +14,10 @@ import { PolicyRepository } from '../../../../../domain/policy';
 export class ExportTravelDataTab {
   fb = inject(FormBuilder);
   appService = inject(AppService);
+
+  backToAdministrator(): void {
+    this.appService.selectedTabIndex.set(6);
+  }
   dialogService = inject(DialogService);
   policyRespository = inject(PolicyRepository);
   exportForm: FormGroup;

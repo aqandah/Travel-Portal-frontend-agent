@@ -17,6 +17,10 @@ import { CreateTravelPriceRequest, UpdateTravelPriceRequest, ViewTravelPrice } f
 export class TravelPricesTab {
   fb = inject(FormBuilder);
   appService = inject(AppService);
+
+  backToAdministrator(): void {
+    this.appService.selectedTabIndex.set(6);
+  }
   dialogService = inject(DialogService);
   travelPriceRepository = inject(TravelPriceRepository);
 

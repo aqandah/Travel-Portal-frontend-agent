@@ -25,6 +25,7 @@ type IndividualPolicyDetails = CustomerViewSinglePolicy & {
   selector: 'app-inquiry-results-form',
   imports: [CommonModule],
   templateUrl: './inquiry-results-form.html',
+  styleUrl: './inquiry-results-form.css',
 })
 export class InquiryResultsForm {
   private el = inject(ElementRef);
@@ -141,6 +142,12 @@ export class InquiryResultsForm {
   get paginatedSinglePolicies(): AgentViewSinglePolicy[] {
 
     return this.paginatedPolicies as AgentViewSinglePolicy[];
+  }
+
+  backToInquiry(): void {
+    this.appService.inquiryResults.set(null);
+    this.appService.currentPolicyToShow.set(null);
+    this.appService.selectedTabIndex.set(4);
   }
 
   nextPage(): void {

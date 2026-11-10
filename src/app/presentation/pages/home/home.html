@@ -228,3 +228,39 @@
     </main>
   </div>
 </div>
+
+@if (showUnsavedChangesConfirmation) {
+  <div
+    class="unsaved-changes-backdrop modal d-block"
+    tabindex="-1"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="unsavedChangesTitle"
+    aria-describedby="unsavedChangesMessage"
+  >
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="unsaved-changes-content modal-content">
+        <div class="modal-body text-center">
+          <span class="unsaved-changes-icon" aria-hidden="true">
+            <i class="bi bi-file-earmark-text"></i>
+          </span>
+          <h5 class="fw-bold mb-2" id="unsavedChangesTitle">Save your progress?</h5>
+          <p class="text-muted mb-0" id="unsavedChangesMessage">
+            You entered information in this form. Save it before opening another section.
+          </p>
+        </div>
+        <div class="unsaved-changes-actions modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary" (click)="stayOnCurrentForm()">
+            Stay
+          </button>
+          <button type="button" class="btn btn-outline-danger" (click)="leaveWithoutSaving()">
+            Leave Without Saving
+          </button>
+          <button type="button" class="btn btn-primary" (click)="saveProgressAndLeave()">
+            <i class="bi bi-floppy me-2"></i>Save & Leave
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

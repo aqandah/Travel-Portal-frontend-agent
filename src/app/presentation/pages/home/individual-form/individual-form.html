@@ -1,275 +1,333 @@
-<div class="responsive-page responsive-form-page container overflow-y-auto p-4" style="position: relative">
-  @if (windowWidth() > 1280) {
-    <img
-      [src]="currentStep() === 0 ? 'individual-step-one.svg' : 'individual-step-two.svg'"
-      style="
-        position: fixed;
-        bottom: -130px;
-        right: -120px;
-        width: 45%;
-        pointer-events: none;
-        z-index: 0;
-      "
-    />
-  }
+<div class="individual-page responsive-page responsive-form-page">
+  <div class="individual-shell">
+    <header class="individual-header">
+      <div class="individual-heading">
+        <span class="individual-eyebrow">Individual Travel</span>
+        <h1>Create Individual Policy</h1>
+        <p>Complete the traveller details, then review the policy information.</p>
+      </div>
 
-  <div class="row gy-3" style="position: relative; z-index: 1">
-    <div class="col-lg-7 col-12">
-      <div class="container-fixed overflow-x-hidden">
-        <div class="form-stepper d-flex align-items-center gap-2 mb-4">
-          @for (step of steps; track step.index) {
-            <div class="d-flex align-items-center">
-              <div
-                class="rounded-circle d-flex align-items-center justify-content-center"
-                [class.bg-primary]="currentStep() >= step.index"
-                [class.bg-secondary]="currentStep() < step.index"
-                [class.text-white]="true"
-                style="width: 32px; height: 32px; font-weight: 600"
-              >
+      <div class="individual-stepper" aria-label="Policy creation progress">
+        @for (step of steps; track step.index) {
+          <div
+            class="individual-step"
+            [class.individual-step--active]="currentStep() === step.index"
+            [class.individual-step--complete]="currentStep() > step.index"
+            [attr.aria-current]="currentStep() === step.index ? 'step' : null"
+          >
+            <span class="individual-step__marker">
+              @if (currentStep() > step.index) {
+                <i class="bi bi-check-lg" aria-hidden="true"></i>
+              } @else {
                 {{ step.index + 1 }}
-              </div>
-              <span
-                class="ms-2 fw-semibold"
-                [class.text-primary]="currentStep() >= step.index"
-                [class.text-muted]="currentStep() < step.index"
-              >
-                {{ step.label }}
-              </span>
-            </div>
-            @if (step.index < steps.length - 1) {
-              <div
-                class="flex-grow-1 mx-2"
-                style="height: 2px"
-                [class.bg-primary]="currentStep() > step.index"
-                [class.bg-secondary]="currentStep() <= step.index"
-              ></div>
-            }
+              }
+            </span>
+            <span class="individual-step__copy">
+              <small>Step {{ step.index + 1 }}</small>
+              <strong>{{ step.label }}</strong>
+            </span>
+          </div>
+
+          @if (step.index < steps.length - 1) {
+            <span
+              class="individual-stepper__line"
+              [class.individual-stepper__line--complete]="currentStep() > step.index"
+              aria-hidden="true"
+            ></span>
           }
-        </div>
+        }
+      </div>
+    </header>
 
+    <div class="individual-layout">
+      <main class="individual-main">
         @if (currentStep() === 0) {
-          <div [formGroup]="personalDetailsForm">
-            <h2>Personal Information</h2>
-            <hr class="col-8 mt-1" />
-
-            <div class="row mb-1 mt-3 g-3">
-              <div class="col-4">
-                <app-form-text-input label="First Name" formControlName="firstName">
-                </app-form-text-input>
+          <div class="individual-form-card" [formGroup]="personalDetailsForm">
+            <div class="individual-card-header">
+              <div>
+                <span class="individual-card-kicker">Step 1 of 2</span>
+                <h2>Personal Information</h2>
+                <p>Enter the traveller's information exactly as shown on their passport.</p>
               </div>
-
-              <div class="col-4">
-                <app-form-text-input label="Father Name" formControlName="fatherName">
-                </app-form-text-input>
-              </div>
-
-              <div class="col-4">
-                <app-form-text-input label="Family Name" formControlName="familyName">
-                </app-form-text-input>
+              <div class="individual-card-header-actions">
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="resetForm()">
+                  <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
+                </button>
+                <span class="individual-card-icon" aria-hidden="true">
+                  <i class="bi bi-person-vcard"></i>
+                </span>
               </div>
             </div>
 
-            <div class="row mb-3 g-3">
-              <div class="col-4">
-                <app-form-text-input label="First Name (Arabic)" formControlName="firstNameAr">
-                </app-form-text-input>
-              </div>
-
-              <div class="col-4">
-                <app-form-text-input label="Father Name (Arabic)" formControlName="fatherNameAr">
-                </app-form-text-input>
-              </div>
-
-              <div class="col-4">
-                <app-form-text-input label="Family Name (Arabic)" formControlName="familyNameAr">
-                </app-form-text-input>
-              </div>
-            </div>
-
-            <div class="row mb-1 g-3">
-              <div class="col-4">
-                <!-- <app-form-text-input
-                  label="Phone Number"
-                  inputType="tel"
-                  formControlName="phoneNumber"
-                >
-                </app-form-text-input> -->
-
-                <app-phone-number-input-field
-                  label="Phone Number"
-                  formControlName="phoneNumber"
-                  [defaultCountry]="'PS'"
-                />
-              </div>
-
-              <div class="col-4">
-                <app-form-text-input label="Fax Number" inputType="tel" formControlName="faxNumber">
-                </app-form-text-input>
-              </div>
-
-              <div class="col-4">
-                <app-form-text-input label="Gender" formControlName="gender" [options]="genders">
-                </app-form-text-input>
-              </div>
-            </div>
-
-            <div class="row mb-3 g-3">
-              <div class="col-4">
-                <app-form-text-input label="Passport ID" formControlName="passportId" [uppercase]="true">
-                </app-form-text-input>
-              </div>
-
-              <div class="col-4">
-                <app-form-text-input
-                  label="Date of Birth"
-                  formControlName="dateOfBirth"
-                  inputType="date"
-                  [max]="maxDateOfBirth"
-                >
-                </app-form-text-input>
-              </div>
-
-              <div class="col-4">
-                <app-form-text-input
-                  label="Nationality"
-                  formControlName="nationality"
-                  [options]="countries"
-                >
-                </app-form-text-input>
-              </div>
-            </div>
-
-            <div class="row mb-3 g-3">
-              <div class="col-6">
-                <app-form-text-input label="Address" formControlName="address">
-                </app-form-text-input>
-              </div>
-
-              <div class="col-6">
-                <app-form-text-input label="Address (Arabic)" formControlName="addressAr">
-                </app-form-text-input>
-              </div>
-            </div>
-
-            <div [formGroup]="policyInfoForm">
-              <h5 class="mt-4 mb-3">
-                <i class="bi bi-credit-card me-2"></i>Payment Information
-              </h5>
-
-              <div class="row mb-3 g-3">
-                <div [hasRole]="[2]" class="col-4">
-                  <app-form-text-input
-                    label="Payment Method"
-                    formControlName="paymentMethod"
-                    [options]="paymentMethods"
-                  >
-                  </app-form-text-input>
-                </div>
-
-                <div class="col-4">
-                  <app-form-text-input
-                    [hasRole]="[1]"
-                    label="Account Number"
-                    formControlName="paymentAccountNumber"
-                    [options]="[{ code: userCashAccount, label: userCashAccount }]"
-                    [disabled]="true"
-                  >
-                  </app-form-text-input>
-
-                  <app-form-text-input
-                    [hasRole]="[2]"
-                    label="Account Number"
-                    formControlName="paymentAccountNumber"
-                    [disabled]="true"
-                  >
-                  </app-form-text-input>
-                </div>
-
-                @if (policyInfoForm.get('paymentMethod')?.value === '2') {
-                  <div class="col-4 d-flex align-items-center pt-3">
-                    <button
-                      [hasRole]="[2]"
-                      (click)="goToAccountsTab()"
-                      class="btn btn-dark"
-                      type="button"
-                    >
-                      Accounts
-                    </button>
+            <div class="individual-card-body">
+              <section class="individual-section">
+                <div class="individual-section-heading">
+                  <i class="bi bi-person"></i>
+                  <div>
+                    <h3>Traveller name</h3>
+                    <p>English fields are used on the policy document.</p>
                   </div>
-                }
-              </div>
+                </div>
+
+                <div class="individual-fields">
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="First Name" formControlName="firstName">
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Father Name" formControlName="fatherName">
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Family Name" formControlName="familyName">
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="First Name (Arabic)" formControlName="firstNameAr">
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Father Name (Arabic)" formControlName="fatherNameAr">
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Family Name (Arabic)" formControlName="familyNameAr">
+                    </app-form-text-input>
+                  </div>
+                </div>
+              </section>
+
+              <section class="individual-section">
+                <div class="individual-section-heading">
+                  <i class="bi bi-passport"></i>
+                  <div>
+                    <h3>Identity details</h3>
+                    <p>Passport, date of birth, nationality and gender.</p>
+                  </div>
+                </div>
+
+                <div class="individual-fields">
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input
+                      label="Passport ID"
+                      formControlName="passportId"
+                      [uppercase]="true"
+                    >
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input
+                      label="Date of Birth"
+                      formControlName="dateOfBirth"
+                      inputType="date"
+                      [max]="maxDateOfBirth"
+                    >
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input
+                      label="Nationality"
+                      formControlName="nationality"
+                      [options]="countries"
+                    >
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input label="Gender" formControlName="gender" [options]="genders">
+                    </app-form-text-input>
+                  </div>
+                </div>
+              </section>
+
+              <section class="individual-section">
+                <div class="individual-section-heading">
+                  <i class="bi bi-telephone"></i>
+                  <div>
+                    <h3>Contact information</h3>
+                    <p>Contact numbers and the traveller's permanent address.</p>
+                  </div>
+                </div>
+
+                <div class="individual-fields">
+                  <div class="individual-field individual-field--6">
+                    <app-phone-number-input-field
+                      label="Phone Number"
+                      formControlName="phoneNumber"
+                      [defaultCountry]="'PS'"
+                    />
+                  </div>
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input label="Fax Number" inputType="tel" formControlName="faxNumber">
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input label="Address" formControlName="address">
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input label="Address (Arabic)" formControlName="addressAr">
+                    </app-form-text-input>
+                  </div>
+                </div>
+              </section>
+
+              <section class="individual-section" [formGroup]="policyInfoForm">
+                <div class="individual-section-heading">
+                  <i class="bi bi-credit-card"></i>
+                  <div>
+                    <h3>Payment information</h3>
+                    <p>Select how the policy premium will be paid.</p>
+                  </div>
+                </div>
+
+                <div class="individual-fields individual-fields--payment">
+                  <div [hasRole]="[2]" class="individual-field individual-field--6">
+                    <app-form-text-input
+                      label="Payment Method"
+                      formControlName="paymentMethod"
+                      [options]="paymentMethods"
+                    >
+                    </app-form-text-input>
+                  </div>
+
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input
+                      [hasRole]="[1]"
+                      label="Account Number"
+                      formControlName="paymentAccountNumber"
+                      [options]="[{ code: userCashAccount, label: userCashAccount }]"
+                      [disabled]="true"
+                    >
+                    </app-form-text-input>
+
+                    <app-form-text-input
+                      [hasRole]="[2]"
+                      label="Account Number"
+                      formControlName="paymentAccountNumber"
+                      [disabled]="true"
+                    >
+                    </app-form-text-input>
+                  </div>
+
+                  @if (policyInfoForm.get('paymentMethod')?.value === '2') {
+                    <div class="individual-field individual-field--12 individual-account-action">
+                      <button
+                        [hasRole]="[2]"
+                        (click)="goToAccountsTab()"
+                        class="btn btn-outline-dark"
+                        type="button"
+                      >
+                        <i class="bi bi-wallet2 me-2"></i>Select Account
+                      </button>
+                    </div>
+                  }
+                </div>
+              </section>
             </div>
 
-            <div class="d-flex align-items-start justify-content-end">
-              <button
-                type="button"
-                (click)="nextStep()"
-                class="btn btn-primary bi bi-caret-right-fill fs-6"
-                style="min-width: 150px"
-              >
-                Next
+            <div class="individual-card-actions individual-card-actions--end">
+              <button type="button" (click)="nextStep()" class="btn btn-primary individual-primary-action">
+                Continue to Policy
+                <i class="bi bi-arrow-right ms-2"></i>
               </button>
             </div>
           </div>
         } @else if (currentStep() === 1) {
-          <form [formGroup]="policyInfoForm" (ngSubmit)="onSavePolicy()">
-            <h2>Policy Information</h2>
-            <hr class="col-8 mt-1" />
-
-            <div class="row mb-1 mt-3 g-3">
-              <div class="col-4">
-                <app-form-text-input
-                  label="Departure From"
-                  formControlName="departureFrom"
-                  [options]="countries"
-                  [disabled]="departureFromSelectedOption !== ''"
-                >
-                </app-form-text-input>
+          <form class="individual-form-card" [formGroup]="policyInfoForm" (ngSubmit)="onSavePolicy()">
+            <div class="individual-card-header">
+              <div>
+                <span class="individual-card-kicker">Step 2 of 2</span>
+                <h2>Policy Information</h2>
+                <p>Set the travel period and choose any optional coverage.</p>
               </div>
-
-              <div class="col-4">
-                <app-form-text-input
-                  label="Destination"
-                  formControlName="destination"
-                  [options]="countries"
-                  [disabled]="destinationSelectedOption !== ''"
-                >
-                </app-form-text-input>
+              <div class="individual-card-header-actions">
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="resetForm()">
+                  <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
+                </button>
+                <span class="individual-card-icon" aria-hidden="true">
+                  <i class="bi bi-shield-check"></i>
+                </span>
               </div>
             </div>
 
-            <div class="row mb-5 g-3">
-              <div class="col-4">
-                <app-form-text-input
-                  label="Inception Date"
-                  formControlName="inceptionDate"
-                  inputType="date"
-                  [min]="today"
-                >
-                </app-form-text-input>
-              </div>
+            <div class="individual-card-body">
+              <section class="individual-section">
+                <div class="individual-section-heading">
+                  <i class="bi bi-geo-alt"></i>
+                  <div>
+                    <h3>Travel route</h3>
+                    <p>Choose the departure country and final destination.</p>
+                  </div>
+                </div>
 
-              <div class="col-4">
-                <app-form-text-input label="Period" formControlName="period" [options]="periods">
-                </app-form-text-input>
-              </div>
+                <div class="individual-fields">
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input
+                      label="Departure From"
+                      formControlName="departureFrom"
+                      [options]="countries"
+                      [disabled]="departureFromSelectedOption !== ''"
+                    >
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--6">
+                    <app-form-text-input
+                      label="Destination"
+                      formControlName="destination"
+                      [options]="countries"
+                      [disabled]="destinationSelectedOption !== ''"
+                    >
+                    </app-form-text-input>
+                  </div>
+                </div>
+              </section>
 
-              <div class="col-4">
-                <app-form-text-input
-                  label="Expiry Date"
-                  formControlName="expiryDate"
-                  inputType="date"
-                  [readonly]="true"
-                  [disabled]="true"
-                >
-                </app-form-text-input>
-              </div>
-            </div>
+              <section class="individual-section">
+                <div class="individual-section-heading">
+                  <i class="bi bi-calendar3"></i>
+                  <div>
+                    <h3>Coverage period</h3>
+                    <p>Select the start date and policy duration.</p>
+                  </div>
+                </div>
 
-            <div class="row mb-3 g-3">
-              <div class="col-12">
-                <label>Optional Coverage</label>
-                <ul class="coverage-list list-group mt-2">
+                <div class="individual-fields">
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input
+                      label="Inception Date"
+                      formControlName="inceptionDate"
+                      inputType="date"
+                      [min]="today"
+                    >
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Period" formControlName="period" [options]="periods">
+                    </app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input
+                      label="Expiry Date"
+                      formControlName="expiryDate"
+                      inputType="date"
+                      [readonly]="true"
+                      [disabled]="true"
+                    >
+                    </app-form-text-input>
+                  </div>
+                </div>
+              </section>
+
+              <section class="individual-section">
+                <div class="individual-section-heading">
+                  <i class="bi bi-shield-plus"></i>
+                  <div>
+                    <h3>Optional coverage</h3>
+                    <p>Add only the protection required for this trip.</p>
+                  </div>
+                </div>
+
+                <ul class="coverage-list list-group individual-coverage-list">
                   <li class="list-group-item">
                     <label class="coverage-option" for="individualTripCancellation">
                       <input
@@ -280,7 +338,8 @@
                         formControlName="tripCancellation"
                       />
                       <span>
-                        Trip Cancellation Limit To 5000$ (Optional)
+                        <strong>Trip Cancellation</strong>
+                        <small>Limit up to 5,000 USD</small>
                       </span>
                     </label>
                   </li>
@@ -295,7 +354,8 @@
                         formControlName="winterSports"
                       />
                       <span>
-                        Winter Ski / Summer Sports Extension (Optional)
+                        <strong>Winter Ski / Summer Sports</strong>
+                        <small>Sports activity extension</small>
                       </span>
                     </label>
                   </li>
@@ -310,66 +370,82 @@
                         formControlName="covid19"
                       />
                       <span>
-                        COVID 19 up to 30000 Euro (Optional)
+                        <strong>COVID-19 Coverage</strong>
+                        <small>Limit up to 30,000 EUR</small>
                       </span>
                     </label>
                   </li>
                 </ul>
-              </div>
+              </section>
             </div>
 
-            <div class="policy-form-actions d-flex align-items-start gap-2">
-              @if (loadingPremium()) {
-                <div
-                  class="alert alert-primary d-flex flex-column align-items-center col-5 mb-0"
-                  role="alert"
-                  style="height: 118.8px"
-                >
-                  <app-logo-loading></app-logo-loading>
-                </div>
-              } @else {
-                <app-price [price]="premiumAmount"></app-price>
-              }
+            <div class="individual-card-actions individual-policy-actions">
+              <div class="individual-premium">
+                @if (loadingPremium()) {
+                  <div class="individual-premium-loading" role="status">
+                    <app-logo-loading></app-logo-loading>
+                    <span>Calculating premium...</span>
+                  </div>
+                } @else {
+                  <section class="individual-premium-card" aria-live="polite">
+                    <span class="individual-premium-card__icon" aria-hidden="true">
+                      <i class="bi bi-wallet2"></i>
+                    </span>
+                    <div class="individual-premium-card__content">
+                      <span class="individual-premium-card__label">Total premium</span>
+                      <strong><small>$</small>{{ premiumAmount | number: '1.2-2' }}</strong>
+                      <span>USD · U.S Dollar / دولار أمريكي</span>
+                    </div>
+                  </section>
+                }
+              </div>
 
-              <button
-                type="button"
-                class="btn btn-outline-primary bi bi-caret-left-fill fs-6 pe-4 ms-auto"
-                style="min-width: 150px"
-                (click)="prevStep()"
-              >
-                Back
-              </button>
-
-              <button
-                type="submit"
-                class="btn btn-success bi bi-floppy2-fill fs-6"
-                style="min-width: 150px"
-              >
-                {{ isUpdateMode ? 'Update Policy' : 'Save Policy' }}
-              </button>
+              <div class="individual-action-buttons">
+                <button type="button" class="btn btn-outline-primary" (click)="prevStep()">
+                  <i class="bi bi-arrow-left me-2"></i>Back
+                </button>
+                <button type="submit" class="btn btn-success individual-primary-action">
+                  <i class="bi bi-floppy2 me-2"></i>
+                  {{ isUpdateMode ? 'Update Policy' : 'Save Policy' }}
+                </button>
+              </div>
             </div>
           </form>
         }
-      </div>
-    </div>
+      </main>
 
-    <div class="col-lg-5 col-12 gt-4">
-      <div class="alert alert-success" role="alert">
-        <strong>Calculate your premium in a single click..</strong><br />
-        Get instant results with our new calculator — no complicated forms or extra steps needed.<br /><br />
-        <a
-          (click)="this.appService.selectedTabIndex.set(7)"
-          class="btn btn-link m-0 p-0 text-primary fw-semibold"
-        >
-          Try it now →
-        </a>
-      </div>
+      <aside class="individual-sidebar">
+        <section class="individual-assist-card">
+          <span class="individual-assist-icon" aria-hidden="true">
+            <i class="bi bi-calculator"></i>
+          </span>
+          <div>
+            <span class="individual-card-kicker">Premium calculator</span>
+            <h2>Need a quick estimate?</h2>
+            <p>Calculate the expected premium before completing the policy.</p>
+            <button
+              type="button"
+              (click)="this.appService.selectedTabIndex.set(7)"
+              class="btn btn-outline-primary"
+            >
+              Open Calculator <i class="bi bi-arrow-up-right ms-2"></i>
+            </button>
+          </div>
+        </section>
 
-      <div class="card border-0">
-        <div class="card-body">
+        <section class="individual-downloads-card">
+          <div class="individual-sidebar-heading">
+            <span class="individual-sidebar-icon" aria-hidden="true">
+              <i class="bi bi-file-earmark-arrow-down"></i>
+            </span>
+            <div>
+              <h2>Policy documents</h2>
+              <p>Reference files available for download.</p>
+            </div>
+          </div>
           <app-files-download [data]="filesToDownload"></app-files-download>
-        </div>
-      </div>
+        </section>
+      </aside>
     </div>
   </div>
 </div>

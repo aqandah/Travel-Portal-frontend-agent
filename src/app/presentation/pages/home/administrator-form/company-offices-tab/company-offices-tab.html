@@ -4,9 +4,14 @@
       <h2 class="mb-1">Company Offices Management</h2>
       <small class="text-muted">Manage company offices and branches</small>
     </div>
-    <button type="button" class="btn btn-success" (click)="openAddOfficeModal()">
-      <i class="bi bi-plus-lg me-2"></i>Add New Office
-    </button>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-outline-secondary" (click)="backToAdministrator()">
+        <i class="bi bi-arrow-left me-2"></i>Back
+      </button>
+      <button type="button" class="btn btn-success" (click)="openAddOfficeModal()">
+        <i class="bi bi-plus-lg me-2"></i>Add New Office
+      </button>
+    </div>
   </div>
 
   <div class="card d-flex flex-column flex-grow-1 overflow-hidden">

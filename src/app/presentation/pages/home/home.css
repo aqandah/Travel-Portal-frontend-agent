@@ -20,6 +20,7 @@
   flex-direction: column;
   min-width: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 .portal-content {
@@ -33,6 +34,48 @@
 .portal-mobile-header,
 .portal-backdrop {
   display: none;
+}
+
+.unsaved-changes-backdrop {
+  z-index: 11000;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.unsaved-changes-content {
+  overflow: hidden;
+  border: 0;
+  border-radius: 1rem;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+}
+
+.unsaved-changes-content .modal-body {
+  padding: 2rem 2rem 1.25rem;
+}
+
+.unsaved-changes-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  color: #175cd3;
+  background: #eaf2ff;
+  font-size: 1.6rem;
+}
+
+.unsaved-changes-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0 2rem 2rem;
+}
+
+.unsaved-changes-actions .btn {
+  min-height: 44px;
+  margin: 0;
 }
 
 @media (max-width: 991.98px) {
@@ -61,9 +104,13 @@
 
   .portal-mobile-header {
     display: flex;
+    position: sticky;
+    top: 0;
     align-items: center;
     justify-content: space-between;
+    flex: 0 0 60px;
     gap: 0.75rem;
+    width: 100%;
     min-height: 60px;
     padding: 0.5rem 1rem;
     background: #fff;
@@ -101,7 +148,21 @@
   }
 
   .portal-content {
+    position: relative;
+    flex: 1 1 auto;
     margin: 0;
+    padding: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .unsaved-changes-content .modal-body {
+    padding: 1.5rem 1.25rem 1rem;
+  }
+
+  .unsaved-changes-actions {
+    grid-template-columns: 1fr;
+    padding: 0 1.25rem 1.5rem;
   }
 }
 

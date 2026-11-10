@@ -59,6 +59,7 @@ export class GroupForm implements OnInit {
   currentStep = signal<number>(0);
   windowWidth = signal(window.innerWidth);
   private premiumCalculationId = 0;
+  private savedProgressSnapshot = '';
 
   steps = [
     { index: 0, label: 'Company' },
@@ -337,7 +338,102 @@ export class GroupForm implements OnInit {
         });
       }
       void this.showPremium(this.discountMode());
+    } else if (!this.appService.updatePolicyContext()) {
+      const savedProgress = this.appService.groupFormProgress();
+      if (savedProgress) {
+        this.companyInfoForm.patchValue(savedProgress.companyInfo, { emitEvent: false });
+        this.policyInfoForm.patchValue(savedProgress.policyInfo, { emitEvent: false });
+        this.members = structuredClone(savedProgress.members);
+        this.premiumAmount.set(savedProgress.premiumAmount);
+        this.automaticDiscountPercent.set(savedProgress.automaticDiscountPercent);
+        this.appliedDiscountPercent.set(savedProgress.appliedDiscountPercent);
+        this.discountMode.set(savedProgress.discountMode);
+        this.premiumQuoteReady.set(savedProgress.premiumQuoteReady);
+        this.currentStep.set(savedProgress.step);
+      }
     }
+
+    this.savedProgressSnapshot = this.getProgressSnapshot();
+  }
+
+  private getProgressData() {
+    return {
+      companyInfo: this.companyInfoForm.getRawValue(),
+      policyInfo: this.policyInfoForm.getRawValue(),
+      members: structuredClone(this.members),
+      premiumAmount: this.premiumAmount(),
+      automaticDiscountPercent: this.automaticDiscountPercent(),
+      appliedDiscountPercent: this.appliedDiscountPercent(),
+      discountMode: this.discountMode(),
+      premiumQuoteReady: this.premiumQuoteReady(),
+      step: this.currentStep(),
+    };
+  }
+
+  private getProgressSnapshot(): string {
+    return JSON.stringify(this.getProgressData());
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.getProgressSnapshot() !== this.savedProgressSnapshot;
+  }
+
+  saveProgress(): void {
+    const progress = this.getProgressData();
+    this.appService.saveGroupFormProgress(progress);
+    this.savedProgressSnapshot = JSON.stringify(progress);
+    this.companyInfoForm.markAsPristine();
+    this.policyInfoForm.markAsPristine();
+  }
+
+  discardUnsavedProgress(): void {
+    this.appService.clearGroupFormProgress();
+  }
+
+  async resetForm(): Promise<void> {
+    const confirmed = await this.dialogService.confirm({
+      title: 'Reset group form?',
+      message: 'Company details, members, pricing, and discount information will be cleared.',
+      confirmText: 'Reset form',
+      cancelText: 'Keep editing',
+      tone: 'danger',
+    });
+
+    if (!confirmed) return;
+
+    this.resetFormState();
+    this.appService.clearGroupFormProgress();
+    this.savedProgressSnapshot = this.getProgressSnapshot();
+    this.dialogService.openDialog('Group form reset successfully', 'success');
+  }
+
+  private resetFormState(): void {
+    const issueDate = new Date().toISOString().split('T')[0];
+    this.companyInfoForm.reset({
+      groupTravelType: '1',
+      departureFrom: 'PAL',
+      issueDate,
+    });
+    this.policyInfoForm.reset({
+      paymentMethod: '2',
+      paymentAccountNumber: this.userCashAccount,
+      manualDiscountPercent: null,
+    });
+    this.companyInfoForm.get('departureFrom')?.disable();
+    this.members = [];
+    this.showMemberForm.set(false);
+    this.editingMemberIndex.set(undefined);
+    this.memberToEdit.set(undefined);
+    this.premiumCalculationId++;
+    this.loadingPremium.set(false);
+    this.premiumQuoteReady.set(false);
+    this.premiumAmount.set(0);
+    this.automaticDiscountPercent.set(0);
+    this.appliedDiscountPercent.set(0);
+    this.discountMode.set('automatic');
+    this.currentStep.set(0);
+    this.companyInfoForm.markAsPristine();
+    this.policyInfoForm.markAsPristine();
   }
 
   calculateExpiryDate(): void {
@@ -679,6 +775,7 @@ calculateAge(birthDate: string): number | string {
         const originalStatus = (this.appService.currentPolicyToShow() as CustomerViewGroupPolicy)
           ?.policyStatus;
         this.appService.updatePolicyContext.set(null);
+        this.appService.clearGroupFormProgress();
         this.appService.currentPolicyToShow.set(result);
         this.appService.isLoading.set(null);
 
@@ -701,6 +798,7 @@ calculateAge(birthDate: string): number | string {
 
       if (result) {
         this.appService.setPolicyInBuffer(3, result);
+        this.appService.clearGroupFormProgress();
         this.appService.currentPolicyToShow.set(result);
         this.appService.selectedTabIndex.set(10);
       } else {
@@ -730,25 +828,8 @@ calculateAge(birthDate: string): number | string {
    */
   clearProgress(): void {
     this.appService.clearDataForTab(3); // Tab index 3 for Group Travel
-    this.companyInfoForm.reset();
-    this.policyInfoForm.reset();
-    this.members = [];
-    this.premiumQuoteReady.set(false);
-    this.premiumAmount.set(0.0);
-    this.automaticDiscountPercent.set(0);
-    this.appliedDiscountPercent.set(0);
-    this.discountMode.set('automatic');
-    this.currentStep.set(0);
-    // Reset default values
-    this.companyInfoForm.patchValue({
-      groupTravelType: '1',
-      departureFrom: 'PAL',
-    });
-    this.policyInfoForm.patchValue({
-      paymentMethod: '2',
-      paymentReference: '1601A2A0069',
-    });
-    const today = new Date().toISOString().split('T')[0];
-    this.companyInfoForm.patchValue({ issueDate: today });
+    this.appService.clearGroupFormProgress();
+    this.resetFormState();
+    this.savedProgressSnapshot = this.getProgressSnapshot();
   }
 }

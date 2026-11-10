@@ -1,4 +1,4 @@
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostListener, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LogoLoading } from "../../components/logo-loading/logo-loading";
 import { DialogService } from '../../../core/services/dialog';
@@ -66,7 +66,11 @@ export class Home {
 
   dialogService = inject(DialogService);
   showLogoutConfirmation = false;
+  showUnsavedChangesConfirmation = false;
+  pendingNavigationIndex: number | null = null;
   mobileNavOpen = false;
+  individualForm = viewChild(IndividualForm);
+  groupForm = viewChild(GroupForm);
 
   constructor() {
     if (!this.authRepository.isAuthenticated)
@@ -74,8 +78,50 @@ export class Home {
   }
 
   selectNavItem(index: number): void {
+    if (index === this.selectedIndex) {
+      this.closeMobileNav();
+      return;
+    }
+
+    const activeForm = this.individualForm() ?? this.groupForm();
+    if (activeForm?.hasUnsavedChanges()) {
+      this.pendingNavigationIndex = index;
+      this.showUnsavedChangesConfirmation = true;
+      this.closeMobileNav();
+      return;
+    }
+
+    this.completeNavigation(index);
+  }
+
+  private completeNavigation(index: number): void {
     this.appService.selectedTabIndex.set(index);
     this.closeMobileNav();
+  }
+
+  saveProgressAndLeave(): void {
+    const activeForm = this.individualForm() ?? this.groupForm();
+    activeForm?.saveProgress();
+    this.dialogService.openDialog('Form progress saved', 'success');
+    this.finishPendingNavigation();
+  }
+
+  leaveWithoutSaving(): void {
+    const activeForm = this.individualForm() ?? this.groupForm();
+    activeForm?.discardUnsavedProgress();
+    this.finishPendingNavigation();
+  }
+
+  stayOnCurrentForm(): void {
+    this.showUnsavedChangesConfirmation = false;
+    this.pendingNavigationIndex = null;
+  }
+
+  private finishPendingNavigation(): void {
+    const targetIndex = this.pendingNavigationIndex;
+    this.showUnsavedChangesConfirmation = false;
+    this.pendingNavigationIndex = null;
+    if (targetIndex !== null) this.completeNavigation(targetIndex);
   }
 
   toggleMobileNav(): void {
@@ -102,6 +148,9 @@ export class Home {
   closeLogoutConfirmationOnEscape(): void {
     if (this.showLogoutConfirmation) {
       this.closeLogoutConfirmation();
+    }
+    if (this.showUnsavedChangesConfirmation) {
+      this.stayOnCurrentForm();
     }
     this.closeMobileNav();
   }

@@ -3,7 +3,11 @@
     class="results-header d-flex justify-content-between align-items-center mb-2 p-3 rounded-3 text-white"
     style="background: linear-gradient(135deg, #722525 0%, #d35c2b 100%)"
   >
-    <div>
+    <div class="results-heading">
+      <button type="button" class="results-back-button" (click)="backToInquiry()">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        <span>Back to Inquiry</span>
+      </button>
       <h2 class="mb-1 fw-bold">Policy Search Results</h2>
       <small class="opacity-75">Found {{ totalPolicies }} policies matching your search</small>
     </div>
