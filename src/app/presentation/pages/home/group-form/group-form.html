@@ -1,16 +1,5 @@
 <div class="group-page responsive-page responsive-form-page">
   <div class="group-shell">
-    <header class="group-header">
-      <div>
-        <span class="group-eyebrow">Group Travel</span>
-        <h1>Create Group Policy</h1>
-        <p>Enter the company details, add members, then review pricing and discounts.</p>
-      </div>
-      <button type="button" class="btn btn-outline-danger" (click)="resetForm()">
-        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
-      </button>
-    </header>
-
     <div class="group-layout">
       <div class="group-main">
         <div class="group-form-card overflow-x-hidden">
@@ -42,6 +31,9 @@
                 ></span>
               }
             }
+            <button type="button" class="btn btn-outline-danger btn-sm group-reset-button" (click)="resetForm()">
+              <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Form
+            </button>
           </div>
 
         @if (currentStep() === 0) {
@@ -50,7 +42,7 @@
             <hr class="col-8 mt-1" />
 
             <div class="row mb-3 mt-3 g-3">
-              <div class="col-12">
+              <div class="col-6">
                 <app-form-text-input
                   label="Group Travel Type"
                   formControlName="groupTravelType"
@@ -58,9 +50,6 @@
                 >
                 </app-form-text-input>
               </div>
-            </div>
-
-            <div class="row mb-5 g-3">
               <div class="col-6">
                 <app-form-text-input
                   label="Company Name (English)"
@@ -68,14 +57,22 @@
                 >
                 </app-form-text-input>
               </div>
-              <div class="col-6">
-                <app-form-text-input
-                  label="Company Name (Arabic)"
-                  formControlName="companyNameArabic"
-                >
-                </app-form-text-input>
-              </div>
             </div>
+
+            <details class="group-optional-fields">
+              <summary>
+                <span><i class="bi bi-chevron-right"></i>Optional fields</span>
+              </summary>
+              <div class="row g-3 group-optional-fields__content">
+                <div class="col-6">
+                  <app-form-text-input
+                    label="Company Name (Arabic)"
+                    formControlName="companyNameArabic"
+                  >
+                  </app-form-text-input>
+                </div>
+              </div>
+            </details>
 
             <div class="row mb-3 g-3">
               <div class="col-6">
@@ -132,7 +129,7 @@
               </h5>
 
               <div class="row mb-3 g-3">
-                <div [hasRole]="[2]" class="col-4">
+                <div [hasRole]="[2]" class="col-6">
                   <app-form-text-input
                     label="Payment Method"
                     formControlName="paymentMethod"
@@ -141,7 +138,7 @@
                   </app-form-text-input>
                 </div>
 
-                <div class="col-4">
+                <div class="col-6">
                   <app-form-text-input
                     [hasRole]="[1]"
                     label="Account Number"
@@ -158,10 +155,16 @@
                     [disabled]="true"
                   >
                   </app-form-text-input>
+                  @if (accountName()) {
+                    <div class="group-account-name">
+                      <i class="bi bi-person-badge" aria-hidden="true"></i>
+                      <span>{{ accountName() }}</span>
+                    </div>
+                  }
                 </div>
 
                 @if (policyInfoForm.get('paymentMethod')?.value === '1') {
-                  <div class="col-3 d-flex align-items-center pt-3">
+                  <div class="col-12 d-flex justify-content-end pt-1">
                     <button
                       [hasRole]="[2]"
                       (click)="goToAccountsTab()"
@@ -225,7 +228,7 @@
                           <th>Age</th>
                           <th>Passport</th>
                           <th>Phone</th>
-                          <th>Add-ons</th>
+                          <th>Optional Coverage Add-ons</th>
                           <th class="text-center">Actions</th>
                         </tr>
                       </thead>
@@ -289,21 +292,28 @@
                 class="group-pricing-grid"
                 [class.group-pricing-grid--single]="!isDiscountEligible"
               >
-                <section class="premium-summary" aria-live="polite">
+                <section
+                  class="premium-summary"
+                  [class.premium-summary--loading]="loadingPremium()"
+                  aria-live="polite"
+                  [attr.aria-busy]="loadingPremium()"
+                >
+                  <div class="premium-summary__icon" aria-hidden="true">
+                    <i class="bi bi-wallet2"></i>
+                  </div>
+                  <div class="premium-summary__content">
+                    <span class="premium-summary__label">Total premium</span>
+                    <div class="premium-summary__amount">
+                      <span class="premium-summary__currency">$</span>
+                      {{ premiumAmount() | number: '1.2-2' }}
+                    </div>
+                    <small>U.S Dollar / القسط بالدولار الأمريكي</small>
+                  </div>
                   @if (loadingPremium()) {
-                    <app-logo-loading></app-logo-loading>
-                  } @else {
-                    <div class="premium-summary__icon" aria-hidden="true">
-                      <i class="bi bi-wallet2"></i>
-                    </div>
-                    <div>
-                      <span class="premium-summary__label">Total premium</span>
-                      <div class="premium-summary__amount">
-                        <span class="premium-summary__currency">$</span>
-                        {{ premiumAmount() | number: '1.2-2' }}
-                      </div>
-                      <small>U.S Dollar / القسط بالدولار الأمريكي</small>
-                    </div>
+                    <span class="premium-summary__status" role="status">
+                      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                      Updating
+                    </span>
                   }
                 </section>
 
@@ -314,7 +324,6 @@
                         <h6 class="mb-1">
                           <i class="bi bi-percent me-2" aria-hidden="true"></i>Group discount
                         </h6>
-                        <small>Available for groups of 10 members or more</small>
                       </div>
                       <span class="discount-panel__badge">
                         {{ appliedDiscountPercent() }}% applied
@@ -401,35 +410,12 @@
       </div>
     </div>
 
-      <aside class="group-sidebar">
-        <section class="group-assist-card">
-          <span class="group-assist-icon" aria-hidden="true"><i class="bi bi-calculator"></i></span>
-          <div>
-            <span class="group-eyebrow">Premium calculator</span>
-            <h2>Need a quick estimate?</h2>
-            <p>Calculate the expected premium before completing the group policy.</p>
-            <button
-              type="button"
-              class="btn btn-outline-primary"
-              (click)="this.appService.selectedTabIndex.set(7)"
-            >
-              Open Calculator <i class="bi bi-arrow-up-right ms-2"></i>
-            </button>
-          </div>
-        </section>
-
-        <section class="group-downloads-card">
-          <div class="group-sidebar-heading">
-            <span aria-hidden="true"><i class="bi bi-file-earmark-arrow-down"></i></span>
-            <div>
-              <h2>Policy documents</h2>
-              <p>Reference files available for download.</p>
-            </div>
-          </div>
-          <app-files-download [data]="filesToDownload"></app-files-download>
-        </section>
-      </aside>
     </div>
+
+    <footer class="group-documents-bar">
+      <i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i>
+      <app-files-download [data]="filesToDownload" [horizontal]="true"></app-files-download>
+    </footer>
   </div>
 </div>
 

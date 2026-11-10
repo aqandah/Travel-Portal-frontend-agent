@@ -99,16 +99,7 @@ export class Home {
     this.closeMobileNav();
   }
 
-  saveProgressAndLeave(): void {
-    const activeForm = this.individualForm() ?? this.groupForm();
-    activeForm?.saveProgress();
-    this.dialogService.openDialog('Form progress saved', 'success');
-    this.finishPendingNavigation();
-  }
-
   leaveWithoutSaving(): void {
-    const activeForm = this.individualForm() ?? this.groupForm();
-    activeForm?.discardUnsavedProgress();
     this.finishPendingNavigation();
   }
 

@@ -23,25 +23,6 @@ type AccountsReturnContext = {
     };
 };
 
-export type IndividualFormProgress = {
-    personalDetails: Record<string, unknown>;
-    policyInfo: Record<string, unknown>;
-    premiumAmount: number;
-    step: number;
-};
-
-export type GroupFormProgress = {
-    companyInfo: Record<string, unknown>;
-    policyInfo: Record<string, unknown>;
-    members: GroupSubPolicy[];
-    premiumAmount: number;
-    automaticDiscountPercent: number;
-    appliedDiscountPercent: number;
-    discountMode: 'automatic' | 'manual';
-    premiumQuoteReady: boolean;
-    step: number;
-};
-
 @Injectable({
     providedIn: 'root'
 })
@@ -90,36 +71,11 @@ export class AppService {
     // --------------------------------------------------------
     selectedTabIndex = signal(0);
     accountsReturnContext = signal<AccountsReturnContext | null>(null);
-    individualFormProgress = signal<Map<number, IndividualFormProgress>>(new Map());
-    groupFormProgress = signal<GroupFormProgress | null>(null);
-
-    saveIndividualFormProgress(planType: number, progress: IndividualFormProgress): void {
-        const drafts = new Map(this.individualFormProgress());
-        drafts.set(planType, structuredClone(progress));
-        this.individualFormProgress.set(drafts);
-    }
-
-    clearIndividualFormProgress(planType: number): void {
-        const drafts = new Map(this.individualFormProgress());
-        drafts.delete(planType);
-        this.individualFormProgress.set(drafts);
-    }
-
-    saveGroupFormProgress(progress: GroupFormProgress): void {
-        this.groupFormProgress.set(structuredClone(progress));
-    }
-
-    clearGroupFormProgress(): void {
-        this.groupFormProgress.set(null);
-    }
-
     consumeAccountsReturnContext(tabIndex: number): AccountsReturnContext | null {
         const context = this.accountsReturnContext();
         if (!context || context.tabIndex !== tabIndex) return null;
 
         this.accountsReturnContext.set(null);
-        this.individualFormProgress.set(new Map());
-        this.groupFormProgress.set(null);
         return context;
     }
     officeSearchQuery = signal<string | null>(null);

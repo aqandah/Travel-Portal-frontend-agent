@@ -1,13 +1,6 @@
 <div class="individual-page responsive-page responsive-form-page">
   <div class="individual-shell">
-    <header class="individual-header">
-      <div class="individual-heading">
-        <span class="individual-eyebrow">Individual Travel</span>
-        <h1>Create Individual Policy</h1>
-        <p>Complete the traveller details, then review the policy information.</p>
-      </div>
-
-      <div class="individual-stepper" aria-label="Policy creation progress">
+      <div class="individual-stepper individual-stepper--standalone" aria-label="Policy creation progress">
         @for (step of steps; track step.index) {
           <div
             class="individual-step"
@@ -37,7 +30,6 @@
           }
         }
       </div>
-    </header>
 
     <div class="individual-layout">
       <main class="individual-main">
@@ -47,7 +39,6 @@
               <div>
                 <span class="individual-card-kicker">Step 1 of 2</span>
                 <h2>Personal Information</h2>
-                <p>Enter the traveller's information exactly as shown on their passport.</p>
               </div>
               <div class="individual-card-header-actions">
                 <button type="button" class="btn btn-outline-danger btn-sm" (click)="resetForm()">
@@ -65,33 +56,16 @@
                   <i class="bi bi-person"></i>
                   <div>
                     <h3>Traveller name</h3>
-                    <p>English fields are used on the policy document.</p>
                   </div>
                 </div>
 
                 <div class="individual-fields">
-                  <div class="individual-field individual-field--4">
+                  <div class="individual-field individual-field--6">
                     <app-form-text-input label="First Name" formControlName="firstName">
                     </app-form-text-input>
                   </div>
-                  <div class="individual-field individual-field--4">
-                    <app-form-text-input label="Father Name" formControlName="fatherName">
-                    </app-form-text-input>
-                  </div>
-                  <div class="individual-field individual-field--4">
+                  <div class="individual-field individual-field--6">
                     <app-form-text-input label="Family Name" formControlName="familyName">
-                    </app-form-text-input>
-                  </div>
-                  <div class="individual-field individual-field--4">
-                    <app-form-text-input label="First Name (Arabic)" formControlName="firstNameAr">
-                    </app-form-text-input>
-                  </div>
-                  <div class="individual-field individual-field--4">
-                    <app-form-text-input label="Father Name (Arabic)" formControlName="fatherNameAr">
-                    </app-form-text-input>
-                  </div>
-                  <div class="individual-field individual-field--4">
-                    <app-form-text-input label="Family Name (Arabic)" formControlName="familyNameAr">
                     </app-form-text-input>
                   </div>
                 </div>
@@ -102,12 +76,11 @@
                   <i class="bi bi-passport"></i>
                   <div>
                     <h3>Identity details</h3>
-                    <p>Passport, date of birth, nationality and gender.</p>
                   </div>
                 </div>
 
                 <div class="individual-fields">
-                  <div class="individual-field individual-field--6">
+                  <div class="individual-field individual-field--4">
                     <app-form-text-input
                       label="Passport ID"
                       formControlName="passportId"
@@ -115,7 +88,7 @@
                     >
                     </app-form-text-input>
                   </div>
-                  <div class="individual-field individual-field--6">
+                  <div class="individual-field individual-field--4">
                     <app-form-text-input
                       label="Date of Birth"
                       formControlName="dateOfBirth"
@@ -124,7 +97,7 @@
                     >
                     </app-form-text-input>
                   </div>
-                  <div class="individual-field individual-field--6">
+                  <div class="individual-field individual-field--4">
                     <app-form-text-input
                       label="Nationality"
                       formControlName="nationality"
@@ -132,7 +105,7 @@
                     >
                     </app-form-text-input>
                   </div>
-                  <div class="individual-field individual-field--6">
+                  <div class="individual-field individual-field--4">
                     <app-form-text-input label="Gender" formControlName="gender" [options]="genders">
                     </app-form-text-input>
                   </div>
@@ -144,7 +117,6 @@
                   <i class="bi bi-telephone"></i>
                   <div>
                     <h3>Contact information</h3>
-                    <p>Contact numbers and the traveller's permanent address.</p>
                   </div>
                 </div>
 
@@ -156,27 +128,43 @@
                       [defaultCountry]="'PS'"
                     />
                   </div>
-                  <div class="individual-field individual-field--6">
-                    <app-form-text-input label="Fax Number" inputType="tel" formControlName="faxNumber">
-                    </app-form-text-input>
-                  </div>
-                  <div class="individual-field individual-field--6">
-                    <app-form-text-input label="Address" formControlName="address">
-                    </app-form-text-input>
-                  </div>
-                  <div class="individual-field individual-field--6">
-                    <app-form-text-input label="Address (Arabic)" formControlName="addressAr">
-                    </app-form-text-input>
-                  </div>
                 </div>
               </section>
+
+              <details class="individual-optional-fields">
+                <summary>
+                  <span><i class="bi bi-chevron-right"></i>Optional fields</span>
+                </summary>
+                <div class="individual-fields individual-optional-fields__content">
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Father Name" formControlName="fatherName"></app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Fax Number" inputType="tel" formControlName="faxNumber"></app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="First Name (Arabic)" formControlName="firstNameAr"></app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Father Name (Arabic)" formControlName="fatherNameAr"></app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Family Name (Arabic)" formControlName="familyNameAr"></app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Address" formControlName="address"></app-form-text-input>
+                  </div>
+                  <div class="individual-field individual-field--4">
+                    <app-form-text-input label="Address (Arabic)" formControlName="addressAr"></app-form-text-input>
+                  </div>
+                </div>
+              </details>
 
               <section class="individual-section" [formGroup]="policyInfoForm">
                 <div class="individual-section-heading">
                   <i class="bi bi-credit-card"></i>
                   <div>
                     <h3>Payment information</h3>
-                    <p>Select how the policy premium will be paid.</p>
                   </div>
                 </div>
 
@@ -207,6 +195,12 @@
                       [disabled]="true"
                     >
                     </app-form-text-input>
+                    @if (accountName()) {
+                      <div class="individual-account-name">
+                        <i class="bi bi-person-badge" aria-hidden="true"></i>
+                        <span>{{ accountName() }}</span>
+                      </div>
+                    }
                   </div>
 
                   @if (policyInfoForm.get('paymentMethod')?.value === '2') {
@@ -238,7 +232,6 @@
               <div>
                 <span class="individual-card-kicker">Step 2 of 2</span>
                 <h2>Policy Information</h2>
-                <p>Set the travel period and choose any optional coverage.</p>
               </div>
               <div class="individual-card-header-actions">
                 <button type="button" class="btn btn-outline-danger btn-sm" (click)="resetForm()">
@@ -256,7 +249,6 @@
                   <i class="bi bi-geo-alt"></i>
                   <div>
                     <h3>Travel route</h3>
-                    <p>Choose the departure country and final destination.</p>
                   </div>
                 </div>
 
@@ -287,7 +279,6 @@
                   <i class="bi bi-calendar3"></i>
                   <div>
                     <h3>Coverage period</h3>
-                    <p>Select the start date and policy duration.</p>
                   </div>
                 </div>
 
@@ -322,12 +313,31 @@
                 <div class="individual-section-heading">
                   <i class="bi bi-shield-plus"></i>
                   <div>
-                    <h3>Optional coverage</h3>
-                    <p>Add only the protection required for this trip.</p>
+                    <h3>{{ planType() === 8 ? 'Included Coverage' : 'Optional Coverage Add-ons' }}</h3>
                   </div>
                 </div>
 
-                <ul class="coverage-list list-group individual-coverage-list">
+                <ul
+                  class="coverage-list list-group individual-coverage-list"
+                  [class.individual-coverage-list--single]="planType() === 8"
+                >
+                  @if (planType() === 8) {
+                    <li class="list-group-item">
+                      <label class="coverage-option" for="inboundCovidCoverage">
+                        <input
+                          class="form-check-input mt-0"
+                          type="checkbox"
+                          id="inboundCovidCoverage"
+                          checked
+                          disabled
+                        />
+                        <span>
+                          <strong>COVID-19 Coverage</strong>
+                          <small>Required coverage up to USD 10,000</small>
+                        </span>
+                      </label>
+                    </li>
+                  } @else {
                   <li class="list-group-item">
                     <label class="coverage-option" for="individualTripCancellation">
                       <input
@@ -375,29 +385,34 @@
                       </span>
                     </label>
                   </li>
+                  }
                 </ul>
               </section>
             </div>
 
             <div class="individual-card-actions individual-policy-actions">
               <div class="individual-premium">
-                @if (loadingPremium()) {
-                  <div class="individual-premium-loading" role="status">
-                    <app-logo-loading></app-logo-loading>
-                    <span>Calculating premium...</span>
+                <section
+                  class="individual-premium-card"
+                  [class.individual-premium-card--loading]="loadingPremium()"
+                  aria-live="polite"
+                  [attr.aria-busy]="loadingPremium()"
+                >
+                  <span class="individual-premium-card__icon" aria-hidden="true">
+                    <i class="bi bi-wallet2"></i>
+                  </span>
+                  <div class="individual-premium-card__content">
+                    <span class="individual-premium-card__label">Total premium</span>
+                    <strong><small>$</small>{{ premiumAmount | number: '1.2-2' }}</strong>
+                    <span>USD · U.S Dollar / دولار أمريكي</span>
                   </div>
-                } @else {
-                  <section class="individual-premium-card" aria-live="polite">
-                    <span class="individual-premium-card__icon" aria-hidden="true">
-                      <i class="bi bi-wallet2"></i>
+                  @if (loadingPremium()) {
+                    <span class="individual-premium-card__status" role="status">
+                      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                      Updating
                     </span>
-                    <div class="individual-premium-card__content">
-                      <span class="individual-premium-card__label">Total premium</span>
-                      <strong><small>$</small>{{ premiumAmount | number: '1.2-2' }}</strong>
-                      <span>USD · U.S Dollar / دولار أمريكي</span>
-                    </div>
-                  </section>
-                }
+                  }
+                </section>
               </div>
 
               <div class="individual-action-buttons">
@@ -414,38 +429,11 @@
         }
       </main>
 
-      <aside class="individual-sidebar">
-        <section class="individual-assist-card">
-          <span class="individual-assist-icon" aria-hidden="true">
-            <i class="bi bi-calculator"></i>
-          </span>
-          <div>
-            <span class="individual-card-kicker">Premium calculator</span>
-            <h2>Need a quick estimate?</h2>
-            <p>Calculate the expected premium before completing the policy.</p>
-            <button
-              type="button"
-              (click)="this.appService.selectedTabIndex.set(7)"
-              class="btn btn-outline-primary"
-            >
-              Open Calculator <i class="bi bi-arrow-up-right ms-2"></i>
-            </button>
-          </div>
-        </section>
-
-        <section class="individual-downloads-card">
-          <div class="individual-sidebar-heading">
-            <span class="individual-sidebar-icon" aria-hidden="true">
-              <i class="bi bi-file-earmark-arrow-down"></i>
-            </span>
-            <div>
-              <h2>Policy documents</h2>
-              <p>Reference files available for download.</p>
-            </div>
-          </div>
-          <app-files-download [data]="filesToDownload"></app-files-download>
-        </section>
-      </aside>
     </div>
+
+    <footer class="individual-documents-bar">
+      <i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i>
+      <app-files-download [data]="filesToDownload" [horizontal]="true"></app-files-download>
+    </footer>
   </div>
 </div>

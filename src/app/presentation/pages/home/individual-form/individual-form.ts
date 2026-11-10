@@ -8,7 +8,6 @@ import { CustomerViewSinglePolicy } from '../../../../data/models';
 import { DialogService } from '../../../../core/services/dialog';
 import { AppService } from '../../../../core/services/app';
 import { GeneralDataRepository } from '../../../../domain/general-data';
-import { LogoLoading } from '../../../components/logo-loading/logo-loading';
 import { HostListener } from '@angular/core';
 import { FilesDownload } from '../../../components/files-download/files-download';
 import { HasRoleDirective } from '../../../../core/directives/has-role-directive';
@@ -17,6 +16,7 @@ import { arabicOnlyValidator, englishOnlyValidator } from '../../../../core/vali
 import { numbersOnlyValidator, phoneNumberValidator } from '../../../../core/validators/number';
 import { passportValidator } from '../../../../core/validators/passport';
 import { PhoneNumberInputField } from '../../../components/phone-number-input-field/phone-number-input-field';
+import { AccountRepository } from '../../../../domain/account';
 
 @Component({
   selector: 'app-individual-form',
@@ -25,7 +25,6 @@ import { PhoneNumberInputField } from '../../../components/phone-number-input-fi
     CommonModule,
     ReactiveFormsModule,
     FormTextInput,
-    LogoLoading,
     FilesDownload,
     HasRoleDirective,
     PhoneNumberInputField,
@@ -36,6 +35,7 @@ import { PhoneNumberInputField } from '../../../components/phone-number-input-fi
 export class IndividualForm implements OnInit {
   policyRepository = inject(PolicyRepository);
   generalRepository = inject(GeneralDataRepository);
+  accountRepository = inject(AccountRepository);
   authorizationRepository = inject(AuthorizationRepository);
   dialogService = inject(DialogService);
   apiService = inject(Api);
@@ -54,6 +54,8 @@ export class IndividualForm implements OnInit {
   policyInfoForm!: FormGroup;
   loadingPremium = signal(false);
   premiumAmount = 0.0;
+  accountName = signal('');
+  private accountNameRequestId = 0;
   genders = [
     { label: 'Male', code: '1' },
     { label: 'Female', code: '2' },
@@ -328,6 +330,9 @@ export class IndividualForm implements OnInit {
       paymentAccountNumberControl?.disable();
     });
     paymentAccountNumberControl?.disable();
+    paymentAccountNumberControl?.valueChanges.subscribe((accountCode) => {
+      void this.loadAccountName(accountCode);
+    });
 
     // Calculate expiry date when inception date or period changes
     this.policyInfoForm.get('inceptionDate')?.valueChanges.subscribe(() => {
@@ -386,21 +391,38 @@ export class IndividualForm implements OnInit {
           paymentAccountNumber: accountsReturnContext.selectedAccountCode,
         });
       }
-    } else if (!this.appService.updatePolicyContext()) {
-      const savedProgress = this.appService.individualFormProgress().get(this.planType());
-      if (savedProgress) {
-        this.personalDetailsForm.patchValue(savedProgress.personalDetails, { emitEvent: false });
-        this.policyInfoForm.patchValue(savedProgress.policyInfo, { emitEvent: false });
-        this.premiumAmount = savedProgress.premiumAmount;
-        this.currentStep.set(savedProgress.step);
-      }
+    }
+
+    if (this.planType() === 8) {
+      this.policyInfoForm.patchValue(
+        { tripCancellation: false, winterSports: false, covid19: false },
+        { emitEvent: false },
+      );
     }
 
     const date = new Date();
     date.setDate(date.getDate() - 30);
 
     this.maxDateOfBirth = date.toISOString().split('T')[0];
+    await this.loadAccountName(this.policyInfoForm.getRawValue().paymentAccountNumber);
     this.savedProgressSnapshot = this.getProgressSnapshot();
+  }
+
+  private async loadAccountName(accountCode: string | null | undefined): Promise<void> {
+    const requestId = ++this.accountNameRequestId;
+    if (!accountCode) {
+      this.accountName.set('');
+      return;
+    }
+
+    try {
+      const accounts = await this.accountRepository.getAccounts(accountCode);
+      if (requestId !== this.accountNameRequestId) return;
+      const account = accounts.find((item) => item.accountCode === accountCode) ?? accounts[0];
+      this.accountName.set(account?.accountNameNative || account?.accountNameForiegn || '');
+    } catch {
+      if (requestId === this.accountNameRequestId) this.accountName.set('');
+    }
   }
 
   private getProgressData() {
@@ -418,18 +440,6 @@ export class IndividualForm implements OnInit {
 
   hasUnsavedChanges(): boolean {
     return this.getProgressSnapshot() !== this.savedProgressSnapshot;
-  }
-
-  saveProgress(): void {
-    const progress = this.getProgressData();
-    this.appService.saveIndividualFormProgress(this.planType(), progress);
-    this.savedProgressSnapshot = JSON.stringify(progress);
-    this.personalDetailsForm.markAsPristine();
-    this.policyInfoForm.markAsPristine();
-  }
-
-  discardUnsavedProgress(): void {
-    this.appService.clearIndividualFormProgress(this.planType());
   }
 
   async resetForm(): Promise<void> {
@@ -464,7 +474,6 @@ export class IndividualForm implements OnInit {
 
     this.currentStep.set(0);
     this.premiumAmount = 0;
-    this.appService.clearIndividualFormProgress(this.planType());
     this.personalDetailsForm.markAsPristine();
     this.policyInfoForm.markAsPristine();
     this.savedProgressSnapshot = this.getProgressSnapshot();
@@ -507,9 +516,14 @@ export class IndividualForm implements OnInit {
     const planType = this.planType();
     const destination = this.policyInfoForm.get('destination')?.value;
 
-    const covidFlag = this.policyInfoForm.get('covid19')?.value;
-    const tripCancellationFlag = this.policyInfoForm.get('tripCancellation')?.value;
-    const winterSkiFlag = this.policyInfoForm.get('winterSports')?.value;
+    const hasOptionalAddOns = planType !== 8;
+    const covidFlag = hasOptionalAddOns ? this.policyInfoForm.get('covid19')?.value : false;
+    const tripCancellationFlag = hasOptionalAddOns
+      ? this.policyInfoForm.get('tripCancellation')?.value
+      : false;
+    const winterSkiFlag = hasOptionalAddOns
+      ? this.policyInfoForm.get('winterSports')?.value
+      : false;
 
     if (!isNaN(passengerAge) && duration && destination) {
       this.loadingPremium.set(true);
@@ -564,9 +578,9 @@ export class IndividualForm implements OnInit {
         destination: policy.destinationCountryCode ?? '',
         inceptionDate: policy.startDate ?? '',
         period: String(policy.duration ?? ''),
-        tripCancellation: policy.tripCancellationFlag ?? false,
-        winterSports: policy.winterSkiFlag ?? false,
-        covid19: policy.covidFlag ?? false,
+        tripCancellation: this.planType() === 8 ? false : (policy.tripCancellationFlag ?? false),
+        winterSports: this.planType() === 8 ? false : (policy.winterSkiFlag ?? false),
+        covid19: this.planType() === 8 ? false : (policy.covidFlag ?? false),
         ...(accountCode
           ? {
               paymentMethod: accountCode === this.userCashAccount ? '1' : '2',
@@ -636,7 +650,6 @@ export class IndividualForm implements OnInit {
             ?.policyStatus;
 
           this.appService.updatePolicyContext.set(null);
-          this.appService.clearIndividualFormProgress(this.planType());
           this.appService.currentPolicyToShow.set({
             ...result,
             accountCode: policyValues.paymentAccountNumber,
@@ -662,7 +675,6 @@ export class IndividualForm implements OnInit {
 
         if (result) {
           this.appService.setPolicyInBuffer(this.planType(), result);
-          this.appService.clearIndividualFormProgress(this.planType());
           this.appService.currentPolicyToShow.set({
             ...result,
             accountCode: policyValues.paymentAccountNumber,
@@ -709,7 +721,6 @@ export class IndividualForm implements OnInit {
    */
   clearProgress(): void {
     this.appService.clearDataForTab(this.tabIndex);
-    this.appService.clearIndividualFormProgress(this.planType());
     this.personalDetailsForm.reset({ nationality: 'PAL' });
     this.policyInfoForm.reset({
       departureFrom: this.departureFromSelectedOption,

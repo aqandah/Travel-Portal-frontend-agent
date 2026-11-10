@@ -63,14 +63,19 @@ export class PolicyDetails {
   expiryDate = signal<string>('');
   isDraft!: boolean;
   originalPolicyGenerated = false;
-  optionalParameters = computed(
-    () =>
-      new Map<string, boolean>([
-        ['Covid 19', this.singlePolicy().covidFlag ?? false],
-        ['Trip Cancellation', this.singlePolicy().tripCancellationFlag ?? false],
-        ['Winter Ski', this.singlePolicy().winterSkiFlag ?? false],
-      ]),
-  );
+  selectedCoverages = computed(() => {
+    if (this.singlePolicy().planType === 8) {
+      return ['COVID-19 Coverage · Up to USD 10,000'];
+    }
+
+    return [
+      { label: 'Trip Cancellation · Up to USD 5,000', selected: this.singlePolicy().tripCancellationFlag },
+      { label: 'Winter Ski / Summer Sports', selected: this.singlePolicy().winterSkiFlag },
+      { label: 'COVID-19 Coverage · Up to EUR 30,000', selected: this.singlePolicy().covidFlag },
+    ]
+      .filter((coverage) => coverage.selected === true)
+      .map((coverage) => coverage.label);
+  });
 
   formatDate(iso: string | null | undefined): string {
     if (!iso) return '';
@@ -89,19 +94,42 @@ export class PolicyDetails {
     return this.groupPolicy().policies?.length ?? 0;
   }
 
-  backToPreviousView(): void {
-    if ((this.appService.inquiryResults()?.length ?? 0) > 0) {
-      this.appService.selectedTabIndex.set(11);
+  async backToPreviousView(): Promise<void> {
+    const subPolicyContext = this.appService.subPolicyContext();
+    if (subPolicyContext) {
+      this.appService.isLoading.set('Loading Group Policy');
+      try {
+        const groupPolicy = await this.policyRepository.getPolicyByRefNumber(
+          subPolicyContext.refNumber,
+        );
+        if (groupPolicy) {
+          this.appService.currentPolicyToShow.set(groupPolicy);
+          this.appService.subPolicyContext.set(null);
+        }
+      } finally {
+        this.appService.isLoading.set(null);
+      }
       return;
     }
 
-    const planType = this.policy()?.planType;
+    const planType = this.isGroupPolicy() ? 3 : this.policy()?.planType;
     const formTabByPlanType: Record<number, number> = {
       1: 0,
       3: 3,
       8: 1,
       11: 2,
     };
+
+    if (planType != null && this.appService.hasPolicyInBuffer(planType)) {
+      this.appService.currentPolicyToShow.set(null);
+      this.appService.clearDataForTab(formTabByPlanType[planType] ?? 4);
+      return;
+    }
+
+    if ((this.appService.inquiryResults()?.length ?? 0) > 0) {
+      this.appService.selectedTabIndex.set(11);
+      return;
+    }
 
     this.appService.selectedTabIndex.set(
       planType == null ? 4 : (formTabByPlanType[planType] ?? 4),
@@ -269,6 +297,7 @@ export class PolicyDetails {
       planType: policy.planType,
       tripCancellationFlag: policy.tripCancellationFlag,
       winterSkiFlag: policy.winterSkiFlag,
+      covidFlag: policy.covidFlag,
       totalPremium: policy.totalPremium,
     };
     this.appService.currentPolicyToShow.set(informativePolicy);

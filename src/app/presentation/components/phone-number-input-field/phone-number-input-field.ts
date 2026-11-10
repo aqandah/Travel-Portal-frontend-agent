@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, inject, input, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, FormsModule, NgControl } from '@angular/forms';
 import { FormTextInput } from '../form-text-input';
@@ -22,12 +22,12 @@ import { Country, COUNTRIES } from './countries';
     }
     .country-dropdown {
       position: fixed;
-      width: 280px;
+      width: min(280px, calc(100vw - 1rem));
       background: white;
       border: 1px solid #dee2e6;
       border-radius: 0.375rem;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-      z-index: 1050;
+      z-index: 12000;
       display: flex;
       flex-direction: column;
     }
@@ -46,6 +46,10 @@ import { Country, COUNTRIES } from './countries';
       padding: 0.4rem 0.75rem;
       cursor: pointer;
       font-size: 0.875rem;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      text-align: left;
     }
     .country-item:hover {
       background: #f8f9fa;
@@ -103,6 +107,7 @@ import { Country, COUNTRIES } from './countries';
         <!-- Country selector -->
         <div style="position: relative; flex-shrink: 0;">
           <button
+            #countryButton
             type="button"
             class="btn btn-outline-secondary country-btn"
             [style.background-color]="hasErrors ? 'var(--error-bg)' : ''"
@@ -115,7 +120,12 @@ import { Country, COUNTRIES } from './countries';
           </button>
 
           @if (dropdownOpen()) {
-            <div class="country-dropdown">
+            <div
+              class="country-dropdown"
+              [style.top.px]="dropdownTop()"
+              [style.left.px]="dropdownLeft()"
+              (click)="$event.stopPropagation()"
+            >
               <div class="country-search">
 
                 <!-- when i click on this input, the browser shows a popup on saved info, don't want that, still shows popup -->
@@ -123,6 +133,8 @@ import { Country, COUNTRIES } from './countries';
                   type="text"
                   class="form-control form-control-sm"
                   placeholder="Search country..."
+                  name="country-code-search"
+                  autocomplete="off"
                   [value]="searchQuery()"
                   (input)="onSearch($event)"
                   (click)="$event.stopPropagation()"
@@ -131,7 +143,8 @@ import { Country, COUNTRIES } from './countries';
               </div>
               <div class="country-list">
                 @for (country of filteredCountries(); track country.code) {
-                  <div
+                  <button
+                    type="button"
                     class="country-item"
                     [class.active]="country.code === selectedCountry().code"
                     (click)="selectCountry(country)"
@@ -139,7 +152,7 @@ import { Country, COUNTRIES } from './countries';
                     <span>{{ country.flag }}</span>
                     <span>{{ country.name }}</span>
                     <span class="dial-code">{{ country.dialCode }}</span>
-                  </div>
+                  </button>
                 }
                 @if (filteredCountries().length === 0) {
                   <div class="country-item text-muted">No results found.</div>
@@ -186,6 +199,9 @@ export class PhoneNumberInputField implements ControlValueAccessor {
   localNumber = signal<string>('');
   dropdownOpen = signal<boolean>(false);
   searchQuery = signal<string>('');
+  dropdownTop = signal(0);
+  dropdownLeft = signal(0);
+  countryButton = viewChild<ElementRef<HTMLButtonElement>>('countryButton');
 
   filteredCountries = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -271,8 +287,30 @@ export class PhoneNumberInputField implements ControlValueAccessor {
   toggleDropdown(event: MouseEvent): void {
     event.stopPropagation();
     const opening = !this.dropdownOpen();
+    if (opening) this.positionDropdown();
     this.dropdownOpen.set(opening);
     if (!opening) this.searchQuery.set('');
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (this.dropdownOpen()) this.positionDropdown();
+  }
+
+  private positionDropdown(): void {
+    const button = this.countryButton()?.nativeElement;
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    const menuWidth = Math.min(280, window.innerWidth - 16);
+    const menuHeight = 292;
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8));
+    const top = window.innerHeight - rect.bottom >= menuHeight
+      ? rect.bottom + 4
+      : Math.max(8, rect.top - menuHeight - 4);
+
+    this.dropdownLeft.set(left);
+    this.dropdownTop.set(top);
   }
 
   onSearch(event: Event): void {

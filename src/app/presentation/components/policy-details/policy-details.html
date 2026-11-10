@@ -1,8 +1,4 @@
-<div class="responsive-page container py-4 overflow-y-auto" style="height: 100%">
-  <button type="button" class="btn btn-outline-secondary mb-3" (click)="backToPreviousView()">
-    <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Back
-  </button>
-
+<div class="responsive-page container py-3 overflow-y-auto" style="height: 100%">
   <div class="row gy-3">
     <div class="col-xl-8 col-12">
       <div
@@ -10,11 +6,14 @@
         style="background: linear-gradient(135deg, #922b21 0%, #d68910 100%)"
       >
         <div class="card-body py-3 px-4 text-white">
-          <div class="row align-items-center">
+          <div class="row align-items-center g-2">
             <div class="col-auto">
-              <small class="text-uppercase opacity-75">Policy Reference</small>
+              <button type="button" class="btn btn-sm btn-light" (click)="backToPreviousView()">
+                <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Back
+              </button>
             </div>
             <div class="col text-center">
+              <small class="text-uppercase opacity-75 d-block">Policy Reference</small>
               @if (isGroupPolicy()) {
                 <span class="fs-5 fw-bold">{{ groupPolicy().policyNumber }}</span>
               } @else {
@@ -126,13 +125,13 @@
           <div class="row g-3 mb-4">
             <div class="col-sm-6">
               <div class="bg-light rounded p-3 h-100">
-                <small class="text-muted d-block mb-1">Destination / الوجهة</small>
+                <small class="text-muted d-block mb-1">Destination</small>
                 <span class="fw-semibold text-dark">{{ destinationCountryNameNative() }}</span>
               </div>
             </div>
             <div class="col-sm-6">
               <div class="bg-light rounded p-3 h-100">
-                <small class="text-muted d-block mb-1">Type of Coverage / النطاق</small>
+                <small class="text-muted d-block mb-1">Type of Coverage</small>
                 <span class="fw-semibold text-dark">{{ typeofCoverageNameNative() }}</span>
               </div>
             </div>
@@ -176,16 +175,19 @@
               </div>
             </div>
 
-            <div class="coverage-summary">
-              @for (entry of optionalParameters(); track entry[0]) {
-                <div class="coverage-summary__item">
-                  <small class="text-muted">{{ entry[0] }}</small>
-                  <span class="badge" [ngClass]="entry[1] ? 'bg-success' : 'bg-secondary'">
-                    {{ entry[1] ? 'Yes' : 'No' }}
-                  </span>
-                </div>
-              }
-            </div>
+            @if (selectedCoverages().length > 0) {
+              <h6 class="mb-2 fw-semibold text-dark">
+                {{ singlePolicy().planType === 8 ? 'Included Coverage' : 'Optional Coverage Add-ons' }}
+              </h6>
+              <div class="coverage-summary">
+                @for (coverage of selectedCoverages(); track coverage) {
+                  <div class="coverage-summary__item">
+                    <small class="text-muted">{{ coverage }}</small>
+                    <span class="badge bg-success">Included</span>
+                  </div>
+                }
+              </div>
+            }
           }
         </div>
       </div>

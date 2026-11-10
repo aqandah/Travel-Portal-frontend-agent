@@ -8,13 +8,13 @@ import { GeneralDataRepository } from '../../../../domain/general-data';
 import { GroupSubPolicy } from '../../../../data/models/group-sub-policy';
 import { PolicyRepository } from '../../../../domain/policy';
 import { FormTextInput } from '../../../components/form-text-input';
-import { LogoLoading } from '../../../components/logo-loading/logo-loading';
 import { GroupMemberForm } from '../../../components/group-member-form/group-member-form';
 import { FilesDownload } from '../../../components/files-download/files-download';
 import { CreateGroupPolicyRequest, CustomerViewGroupPolicy } from '../../../../data/models';
 import { AuthorizationRepository } from '../../../../domain/authorization';
 import { HasRoleDirective } from '../../../../core/directives/has-role-directive';
 import { arabicOnlyValidator, englishOnlyValidator } from '../../../../core/validators/language';
+import { AccountRepository } from '../../../../domain/account';
 
 type GroupDiscountMode = 'automatic' | 'manual';
 
@@ -25,7 +25,6 @@ type GroupDiscountMode = 'automatic' | 'manual';
     CommonModule,
     ReactiveFormsModule,
     FormTextInput,
-    LogoLoading,
     GroupMemberForm,
     FilesDownload,
     HasRoleDirective,
@@ -35,6 +34,7 @@ type GroupDiscountMode = 'automatic' | 'manual';
 })
 export class GroupForm implements OnInit {
   generalRepository = inject(GeneralDataRepository);
+  accountRepository = inject(AccountRepository);
   dialogService = inject(DialogService);
   authorizationRepository = inject(AuthorizationRepository);
   appService = inject(AppService);
@@ -59,6 +59,8 @@ export class GroupForm implements OnInit {
   currentStep = signal<number>(0);
   windowWidth = signal(window.innerWidth);
   private premiumCalculationId = 0;
+  accountName = signal('');
+  private accountNameRequestId = 0;
   private savedProgressSnapshot = '';
 
   steps = [
@@ -275,6 +277,9 @@ export class GroupForm implements OnInit {
         .get('paymentAccountNumber')
         ?.setValue(paymentMethod === '2' ? this.userCashAccount : '');
     });
+    this.policyInfoForm.get('paymentAccountNumber')?.valueChanges.subscribe((accountCode) => {
+      void this.loadAccountName(accountCode);
+    });
 
     this.companyInfoForm.get('departureFrom')?.disable();
 
@@ -338,22 +343,27 @@ export class GroupForm implements OnInit {
         });
       }
       void this.showPremium(this.discountMode());
-    } else if (!this.appService.updatePolicyContext()) {
-      const savedProgress = this.appService.groupFormProgress();
-      if (savedProgress) {
-        this.companyInfoForm.patchValue(savedProgress.companyInfo, { emitEvent: false });
-        this.policyInfoForm.patchValue(savedProgress.policyInfo, { emitEvent: false });
-        this.members = structuredClone(savedProgress.members);
-        this.premiumAmount.set(savedProgress.premiumAmount);
-        this.automaticDiscountPercent.set(savedProgress.automaticDiscountPercent);
-        this.appliedDiscountPercent.set(savedProgress.appliedDiscountPercent);
-        this.discountMode.set(savedProgress.discountMode);
-        this.premiumQuoteReady.set(savedProgress.premiumQuoteReady);
-        this.currentStep.set(savedProgress.step);
-      }
     }
 
+    await this.loadAccountName(this.policyInfoForm.getRawValue().paymentAccountNumber);
     this.savedProgressSnapshot = this.getProgressSnapshot();
+  }
+
+  private async loadAccountName(accountCode: string | null | undefined): Promise<void> {
+    const requestId = ++this.accountNameRequestId;
+    if (!accountCode) {
+      this.accountName.set('');
+      return;
+    }
+
+    try {
+      const accounts = await this.accountRepository.getAccounts(accountCode);
+      if (requestId !== this.accountNameRequestId) return;
+      const account = accounts.find((item) => item.accountCode === accountCode) ?? accounts[0];
+      this.accountName.set(account?.accountNameNative || account?.accountNameForiegn || '');
+    } catch {
+      if (requestId === this.accountNameRequestId) this.accountName.set('');
+    }
   }
 
   private getProgressData() {
@@ -378,18 +388,6 @@ export class GroupForm implements OnInit {
     return this.getProgressSnapshot() !== this.savedProgressSnapshot;
   }
 
-  saveProgress(): void {
-    const progress = this.getProgressData();
-    this.appService.saveGroupFormProgress(progress);
-    this.savedProgressSnapshot = JSON.stringify(progress);
-    this.companyInfoForm.markAsPristine();
-    this.policyInfoForm.markAsPristine();
-  }
-
-  discardUnsavedProgress(): void {
-    this.appService.clearGroupFormProgress();
-  }
-
   async resetForm(): Promise<void> {
     const confirmed = await this.dialogService.confirm({
       title: 'Reset group form?',
@@ -402,7 +400,6 @@ export class GroupForm implements OnInit {
     if (!confirmed) return;
 
     this.resetFormState();
-    this.appService.clearGroupFormProgress();
     this.savedProgressSnapshot = this.getProgressSnapshot();
     this.dialogService.openDialog('Group form reset successfully', 'success');
   }
@@ -775,7 +772,6 @@ calculateAge(birthDate: string): number | string {
         const originalStatus = (this.appService.currentPolicyToShow() as CustomerViewGroupPolicy)
           ?.policyStatus;
         this.appService.updatePolicyContext.set(null);
-        this.appService.clearGroupFormProgress();
         this.appService.currentPolicyToShow.set(result);
         this.appService.isLoading.set(null);
 
@@ -798,7 +794,6 @@ calculateAge(birthDate: string): number | string {
 
       if (result) {
         this.appService.setPolicyInBuffer(3, result);
-        this.appService.clearGroupFormProgress();
         this.appService.currentPolicyToShow.set(result);
         this.appService.selectedTabIndex.set(10);
       } else {
@@ -828,7 +823,6 @@ calculateAge(birthDate: string): number | string {
    */
   clearProgress(): void {
     this.appService.clearDataForTab(3); // Tab index 3 for Group Travel
-    this.appService.clearGroupFormProgress();
     this.resetFormState();
     this.savedProgressSnapshot = this.getProgressSnapshot();
   }
