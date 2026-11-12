@@ -95,6 +95,9 @@ export class Home {
   }
 
   private completeNavigation(index: number): void {
+    if (this.selectedIndex === 10 && index !== 10) {
+      this.appService.policyFormReturnContext.set(null);
+    }
     this.appService.selectedTabIndex.set(index);
     this.closeMobileNav();
   }

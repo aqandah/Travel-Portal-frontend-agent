@@ -12,6 +12,13 @@ import { Price } from '../price';
 
 type IndividualPolicyDetails = CustomerViewSinglePolicy & {
   hasEndorsedVersion?: boolean;
+  accountCode?: string | null;
+  originCountryCode?: string | null;
+  fax?: string | null;
+};
+
+type GroupPolicyDetails = CustomerViewGroupPolicy & {
+  accountCode?: string | null;
 };
 
 @Component({
@@ -32,7 +39,7 @@ export class PolicyDetails {
   });
 
   singlePolicy = computed(() => this.appService.currentPolicyToShow() as IndividualPolicyDetails);
-  groupPolicy = computed(() => this.appService.currentPolicyToShow() as CustomerViewGroupPolicy);
+  groupPolicy = computed(() => this.appService.currentPolicyToShow() as GroupPolicyDetails);
 
   policy = computed(() => this.appService.currentPolicyToShow());
   hasEndorsedVersion = computed(
@@ -63,6 +70,30 @@ export class PolicyDetails {
   expiryDate = signal<string>('');
   isDraft!: boolean;
   originalPolicyGenerated = false;
+  accountCode = computed(() => {
+    const policy = this.appService.currentPolicyToShow() as
+      | IndividualPolicyDetails
+      | GroupPolicyDetails
+      | null;
+    return policy?.accountCode?.trim() || 'N/A';
+  });
+  planTypeLabel = computed(() => {
+    const labels: Record<number, string> = {
+      1: 'Individual Travel',
+      3: 'Group Travel',
+      8: 'Inbound Individual',
+      11: 'Student Plan',
+    };
+    const planType = this.policy()?.planType;
+    return planType == null ? 'N/A' : (labels[planType] ?? `Plan ${planType}`);
+  });
+  policyStatusLabel = computed(() => {
+    const status = this.policy()?.policyStatus ?? this.policy()?.status;
+    if (status === 0) return 'Draft';
+    if (status === 2) return 'Endorsed';
+    if (status === 1) return 'Generated';
+    return 'N/A';
+  });
   selectedCoverages = computed(() => {
     if (this.singlePolicy().planType === 8) {
       return ['COVID-19 Coverage · Up to USD 10,000'];
@@ -120,8 +151,26 @@ export class PolicyDetails {
       11: 2,
     };
 
-    if (planType != null && this.appService.hasPolicyInBuffer(planType)) {
-      this.appService.currentPolicyToShow.set(null);
+    const formReturnContext = this.appService.policyFormReturnContext();
+    const openedAfterFormSave =
+      planType != null &&
+      (this.appService.hasPolicyInBuffer(planType) || formReturnContext?.planType === planType);
+
+    if (planType != null && openedAfterFormSave) {
+      const referenceKey = this.isGroupPolicy()
+        ? (this.groupPolicy().policyNumber ?? '')
+        : (this.singlePolicy().referenceKey ?? '');
+
+      if (referenceKey) {
+        this.appService.updatePolicyContext.set({
+          refNumber: referenceKey,
+          ...(this.isGroupPolicy() ? {} : { serial: 0 }),
+        });
+      }
+      this.appService.policyFormReturnContext.set({
+        planType,
+        step: formReturnContext?.step ?? 1,
+      });
       this.appService.clearDataForTab(formTabByPlanType[planType] ?? 4);
       return;
     }
@@ -241,11 +290,14 @@ export class PolicyDetails {
     this.destinationCountryNameNative.set(destinationCountry?.nameInEnglish ?? '');
     this.destinationCountryNameForeign.set(destinationCountry?.nameInArabic ?? '');
 
-    if (this.isGroupPolicy()) {
-      const originCountry = countries.find((p) => p.id === this.groupPolicy().originCountryCode);
-      this.originCountryNameNative.set(originCountry?.nameInEnglish ?? '');
-      this.originCountryNameForeign.set(originCountry?.nameInArabic ?? '');
-    } else {
+    const originCode = this.isGroupPolicy()
+      ? this.groupPolicy().originCountryCode
+      : this.singlePolicy().originCountryCode;
+    const originCountry = countries.find((p) => p.id === originCode);
+    this.originCountryNameNative.set(originCountry?.nameInEnglish ?? '');
+    this.originCountryNameForeign.set(originCountry?.nameInArabic ?? '');
+
+    if (!this.isGroupPolicy()) {
       const nationalityCountry = countries.find(
         (p) => p.id === this.singlePolicy().nationalityCountry,
       );

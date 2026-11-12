@@ -23,6 +23,11 @@ type AccountsReturnContext = {
     };
 };
 
+type PolicyFormReturnContext = {
+    planType: number;
+    step: number;
+};
+
 @Injectable({
     providedIn: 'root'
 })
@@ -71,12 +76,21 @@ export class AppService {
     // --------------------------------------------------------
     selectedTabIndex = signal(0);
     accountsReturnContext = signal<AccountsReturnContext | null>(null);
+    policyFormReturnContext = signal<PolicyFormReturnContext | null>(null);
     consumeAccountsReturnContext(tabIndex: number): AccountsReturnContext | null {
         const context = this.accountsReturnContext();
         if (!context || context.tabIndex !== tabIndex) return null;
 
         this.accountsReturnContext.set(null);
         return context;
+    }
+
+    consumePolicyFormReturnStep(planType: number): number | null {
+        const context = this.policyFormReturnContext();
+        if (!context || context.planType !== planType) return null;
+
+        this.policyFormReturnContext.set(null);
+        return context.step;
     }
     officeSearchQuery = signal<string | null>(null);
     currentPolicyToShow = signal<CustomerViewPolicy | null>(null);
@@ -122,6 +136,7 @@ export class AppService {
     resetDashboardState(): void {
         this.selectedTabIndex.set(0);
         this.accountsReturnContext.set(null);
+        this.policyFormReturnContext.set(null);
         this.officeSearchQuery.set(null);
         this.currentPolicyToShow.set(null);
         this.policiesBuffer.set(new Map());

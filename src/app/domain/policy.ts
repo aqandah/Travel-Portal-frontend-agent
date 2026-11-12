@@ -1,7 +1,7 @@
 import { inject, Injectable } from "@angular/core";
 import { Api } from "../data/api";
 import { CalculatePremiumRequestDto, CalculatePremiumResponseDto, CreateGroupPolicyRequest, CreateSinglePolicyRequest, InquiryGroupPolicyRequestDto, InquirySinglePolicyRequestDto, CustomerViewPolicy, AgentViewPolicy, CustomerViewSinglePolicy, RetrieveGroupPolicyRequestDto } from "../data/models";
-import { policiesPost, policiesPremiumPost, reportsPolicyGet, policiesInquiryPost, policiesDeleteDraftDelete, reportsInsuredClientsGet, reportsTravelDataGet, policiesEndorsePolicyRefNumberPost, policiesPolicyRefNumberGet, policiesPut, policiesRetrievePost } from "../data/functions";
+import { policiesPost, policiesPremiumPost, reportsPolicyPost, policiesInquiryPost, policiesDeleteDraftDelete, reportsInsuredClientsGet, reportsTravelDataGet, policiesEndorsePolicyRefNumberPost, policiesPolicyRefNumberGet, policiesPut, policiesRetrievePost } from "../data/functions";
 
 @Injectable({
     providedIn: 'root'
@@ -39,9 +39,11 @@ export class PolicyRepository {
 
     public async printPolicy(policyRefNumber: string, isDraft: boolean): Promise<Blob | void> {
         try {
-            const response = await this.apiService.invoke(reportsPolicyGet, {
-                isDraft: isDraft,
-                policyRefNumber: policyRefNumber
+            const response = await this.apiService.invoke(reportsPolicyPost, {
+                body: {
+                    printAsDraft: isDraft,
+                    policyNumber: policyRefNumber
+                }
             })
 
             window.open(URL.createObjectURL(response))

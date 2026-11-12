@@ -7,17 +7,17 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-
-export interface ReportsPolicyGet$Params {
-  policyRefNumber: string;
-  isDraft: boolean;
+export interface ReportsPolicyPost$Params {
+  body: {
+    printAsDraft?: boolean;
+    policyNumber: string;
+  }
 }
 
-export function reportsPolicyGet(http: HttpClient, rootUrl: string, params: ReportsPolicyGet$Params, context?: HttpContext): Observable<StrictHttpResponse<Blob>> {
-  const rb = new RequestBuilder(rootUrl, reportsPolicyGet.PATH, 'get');
+export function reportsPolicyPost(http: HttpClient, rootUrl: string, params: ReportsPolicyPost$Params, context?: HttpContext): Observable<StrictHttpResponse<Blob>> {
+  const rb = new RequestBuilder(rootUrl, reportsPolicyPost.PATH, 'post');
   if (params) {
-    rb.query('policyRefNumber', params.policyRefNumber, {});
-    rb.query('isDraft', params.isDraft, {});
+    rb.body(params.body, 'application/json');
   }
 
   return http.request(
@@ -30,4 +30,4 @@ export function reportsPolicyGet(http: HttpClient, rootUrl: string, params: Repo
   );
 }
 
-reportsPolicyGet.PATH = '/reports/policy';
+reportsPolicyPost.PATH = '/reports/policy';

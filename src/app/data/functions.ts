@@ -93,8 +93,8 @@ export type { ReportsTravelDataGet$Params as ReportsTravelDataGet$Params } from 
 export { reportsTravelDataGet as reportsTravelDataGet } from './fn/reports/reports-travel-data-get';
 export type { ReportsInsuredClientsGet$Params as ReportsInsuredClientsGet$Params } from './fn/reports/reports-insured-clients-get';
 export { reportsInsuredClientsGet as reportsInsuredClientsGet } from './fn/reports/reports-insured-clients-get';
-export type { ReportsPolicyGet$Params as ReportsPolicyGet$Params } from './fn/reports/reports-policy-get';
-export { reportsPolicyGet as reportsPolicyGet } from './fn/reports/reports-policy-get';
+export type { ReportsPolicyPost$Params as ReportsPolicyPost$Params } from './fn/reports/reports-policy-post';
+export { reportsPolicyPost as reportsPolicyPost } from './fn/reports/reports-policy-post';
 export type { ReportsPolicyCustomerPost$Params as ReportsPolicyCustomerPost$Params } from './fn/reports/reports-policy-customer-post';
 export { reportsPolicyCustomerPost as reportsPolicyCustomerPost } from './fn/reports/reports-policy-customer-post';
 export type { ReportsAgentReportGet$Params as ReportsAgentReportGet$Params } from './fn/reports/reports-agent-report-get';

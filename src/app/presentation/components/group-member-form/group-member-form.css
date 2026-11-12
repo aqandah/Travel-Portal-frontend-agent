@@ -50,6 +50,8 @@
 }
 
 .coverage-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.625rem;
 }
 
@@ -120,6 +122,10 @@
   .member-modal-body,
   .member-modal-footer {
     padding: 1rem;
+  }
+
+  .coverage-list {
+    grid-template-columns: 1fr;
   }
 
   .member-modal-header h5 {

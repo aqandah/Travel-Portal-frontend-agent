@@ -19,6 +19,7 @@ export interface PolicyResult {
 
 type IndividualPolicyDetails = CustomerViewSinglePolicy & {
   hasEndorsedVersion: boolean;
+  originCountryCode?: string | null;
 };
 
 @Component({
@@ -259,6 +260,7 @@ export class InquiryResultsForm {
         passportNumber: policy.passportNumber,
         duration: policy.duration,
         destinationCountryCode: policy.destinationCountryCode,
+        originCountryCode: policy.originCountryCode,
         startDate: policy.startDate,
         firstName: policy.firstName,
         lastName: policy.lastName,

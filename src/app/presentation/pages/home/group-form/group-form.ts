@@ -95,7 +95,6 @@ export class GroupForm implements OnInit {
   }
 
   private readonly fieldLabels: Record<string, string> = {
-    groupTravelType: 'Group Travel Type',
     companyNameEnglish: 'Company Name',
     companyNameArabic: 'Company Name (Arabic)',
     departureFrom: 'Departure From',
@@ -221,7 +220,6 @@ export class GroupForm implements OnInit {
     ];
   }
 
-  groupTravelTypes = [{ label: 'Normal Group', code: '1' }];
   countries: { label: string; code: string }[] = [];
   periods: { label: string; code: string }[] = [];
   typesOfCoverage: { label: string; code: string }[] = [];
@@ -346,6 +344,8 @@ export class GroupForm implements OnInit {
     }
 
     await this.loadAccountName(this.policyInfoForm.getRawValue().paymentAccountNumber);
+    const returnStep = this.appService.consumePolicyFormReturnStep(3);
+    if (returnStep !== null) this.currentStep.set(returnStep);
     this.savedProgressSnapshot = this.getProgressSnapshot();
   }
 
@@ -631,7 +631,9 @@ calculateAge(birthDate: string): number | string {
   }
 
   async prefillFromCurrentPolicy(): Promise<void> {
-    const policy = this.appService.currentPolicyToShow() as CustomerViewGroupPolicy;
+    const policy = this.appService.currentPolicyToShow() as CustomerViewGroupPolicy & {
+      accountCode?: string | null;
+    };
     if (!policy) return;
 
     this.companyInfoForm.patchValue(
@@ -644,6 +646,16 @@ calculateAge(birthDate: string): number | string {
       },
       { emitEvent: false },
     );
+
+    if (policy.accountCode) {
+      this.policyInfoForm.patchValue(
+        {
+          paymentMethod: policy.accountCode === this.userCashAccount ? '2' : '1',
+          paymentAccountNumber: policy.accountCode,
+        },
+        { emitEvent: false },
+      );
+    }
 
     if (policy.policies && policy.policies.length > 0) {
       this.members = policy.policies.map((p) => ({
@@ -745,6 +757,7 @@ calculateAge(birthDate: string): number | string {
     const companyValues = this.companyInfoForm.getRawValue();
 
     const groupPolicyRequest: CreateGroupPolicyRequest = {
+      accountCode: this.policyInfoForm.getRawValue().paymentAccountNumber,
       planType: 3,
       destinationCountryCode: companyValues.destination,
       duration: Number(companyValues.period),
@@ -772,7 +785,11 @@ calculateAge(birthDate: string): number | string {
         const originalStatus = (this.appService.currentPolicyToShow() as CustomerViewGroupPolicy)
           ?.policyStatus;
         this.appService.updatePolicyContext.set(null);
-        this.appService.currentPolicyToShow.set(result);
+        const detailedResult = {
+          ...result,
+          accountCode: this.policyInfoForm.getRawValue().paymentAccountNumber,
+        } as CustomerViewGroupPolicy & { accountCode?: string | null };
+        this.appService.currentPolicyToShow.set(detailedResult);
         this.appService.isLoading.set(null);
 
         if (originalStatus === 0)
@@ -783,6 +800,7 @@ calculateAge(birthDate: string): number | string {
             'success',
           );
 
+        this.appService.policyFormReturnContext.set({ planType: 3, step: 1 });
         this.appService.selectedTabIndex.set(10);
       } else {
         this.appService.isLoading.set(null);
@@ -793,8 +811,13 @@ calculateAge(birthDate: string): number | string {
       const result = await this.policyRepository.createPolicy(groupPolicyRequest);
 
       if (result) {
-        this.appService.setPolicyInBuffer(3, result);
-        this.appService.currentPolicyToShow.set(result);
+        const detailedResult = {
+          ...result,
+          accountCode: this.policyInfoForm.getRawValue().paymentAccountNumber,
+        } as CustomerViewGroupPolicy & { accountCode?: string | null };
+        this.appService.setPolicyInBuffer(3, detailedResult);
+        this.appService.currentPolicyToShow.set(detailedResult);
+        this.appService.policyFormReturnContext.set({ planType: 3, step: 1 });
         this.appService.selectedTabIndex.set(10);
       } else {
         this.appService.isLoading.set(null);

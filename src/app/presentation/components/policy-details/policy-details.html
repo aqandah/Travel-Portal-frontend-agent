@@ -115,6 +115,30 @@
         </div>
       }
 
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+          <h6 class="mb-0 fw-bold" style="color: #922b21">
+            <i class="bi bi-file-earmark-text me-2"></i>Policy Information
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4 col-6">
+              <small class="text-muted d-block mb-1">Account Number</small>
+              <span class="fw-semibold text-dark">{{ accountCode() }}</span>
+            </div>
+            <div class="col-md-4 col-6">
+              <small class="text-muted d-block mb-1">Policy Type</small>
+              <span class="fw-semibold text-dark">{{ planTypeLabel() }}</span>
+            </div>
+            <div class="col-md-4 col-6">
+              <small class="text-muted d-block mb-1">Status</small>
+              <span class="badge bg-secondary">{{ policyStatusLabel() }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="card border-0 shadow-sm" [class.mb-4]="isGroupPolicy()">
         <div class="card-header bg-white border-bottom py-3">
           <h6 class="mb-0 fw-bold" style="color: #922b21">
@@ -123,13 +147,19 @@
         </div>
         <div class="card-body">
           <div class="row g-3 mb-4">
-            <div class="col-sm-6">
+            <div class="col-md-4">
               <div class="bg-light rounded p-3 h-100">
                 <small class="text-muted d-block mb-1">Destination</small>
                 <span class="fw-semibold text-dark">{{ destinationCountryNameNative() }}</span>
               </div>
             </div>
-            <div class="col-sm-6">
+            <div class="col-md-4">
+              <div class="bg-light rounded p-3 h-100">
+                <small class="text-muted d-block mb-1">Departure From</small>
+                <span class="fw-semibold text-dark">{{ originCountryNameNative() || 'N/A' }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
               <div class="bg-light rounded p-3 h-100">
                 <small class="text-muted d-block mb-1">Type of Coverage</small>
                 <span class="fw-semibold text-dark">{{ typeofCoverageNameNative() }}</span>

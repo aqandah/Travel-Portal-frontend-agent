@@ -405,6 +405,8 @@ export class IndividualForm implements OnInit {
 
     this.maxDateOfBirth = date.toISOString().split('T')[0];
     await this.loadAccountName(this.policyInfoForm.getRawValue().paymentAccountNumber);
+    const returnStep = this.appService.consumePolicyFormReturnStep(this.planType());
+    if (returnStep !== null) this.currentStep.set(returnStep);
     this.savedProgressSnapshot = this.getProgressSnapshot();
   }
 
@@ -650,10 +652,15 @@ export class IndividualForm implements OnInit {
             ?.policyStatus;
 
           this.appService.updatePolicyContext.set(null);
-          this.appService.currentPolicyToShow.set({
+          const detailedResult = {
             ...result,
             accountCode: policyValues.paymentAccountNumber,
-          } as CustomerViewSinglePolicy & { accountCode?: string });
+            originCountryCode: policyValues.departureFrom,
+          } as CustomerViewSinglePolicy & {
+            accountCode?: string;
+            originCountryCode?: string;
+          };
+          this.appService.currentPolicyToShow.set(detailedResult);
           this.appService.isLoading.set(null);
 
           if (originalStatus === 0)
@@ -664,6 +671,7 @@ export class IndividualForm implements OnInit {
               'success',
             );
 
+          this.appService.policyFormReturnContext.set({ planType: this.planType(), step: 1 });
           this.appService.selectedTabIndex.set(10);
         } else {
           this.appService.isLoading.set(null);
@@ -674,13 +682,19 @@ export class IndividualForm implements OnInit {
         const result = await this.policyRepository.createPolicy(policyData);
 
         if (result) {
-          this.appService.setPolicyInBuffer(this.planType(), result);
-          this.appService.currentPolicyToShow.set({
+          const detailedResult = {
             ...result,
             accountCode: policyValues.paymentAccountNumber,
-          } as CustomerViewSinglePolicy & { accountCode?: string });
+            originCountryCode: policyValues.departureFrom,
+          } as CustomerViewSinglePolicy & {
+            accountCode?: string;
+            originCountryCode?: string;
+          };
+          this.appService.setPolicyInBuffer(this.planType(), detailedResult);
+          this.appService.currentPolicyToShow.set(detailedResult);
           this.appService.isLoading.set(null);
           this.dialogService.openDialog('Policy inserted successfully', 'success');
+          this.appService.policyFormReturnContext.set({ planType: this.planType(), step: 1 });
           this.appService.selectedTabIndex.set(10);
         } else {
           this.appService.isLoading.set(null);
